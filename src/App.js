@@ -2,6 +2,8 @@ import logo from './logo.svg';
 import './App.css';
 import React, {useState} from "react";
 import ElemBaseComp from "./ElemBaseComp";
+import commonclass from './commonclass';
+import Matrices from './Matrices';
 
 //TITLE
 //ADD TO CURRENT NEW REACTANT SET
@@ -20,116 +22,17 @@ function App() {
   let initplcobj = {"num": 1, "isreactant": false, "lcval": 1};
   let [myelembasearr, setElembaseArr] = useState([initrobj, initpobj]);
   let [mylcs, setMyLCs] = useState([initrlcobj, initplcobj]);//lcs
+  let [lockedbases, setLockedBases] = useState(false);
+  let [areallequsbalanced, setAllEqusBalanced] = useState(true);
+  let [balerrfnd, setBalErrorFound] = useState(false);
+  const cc = new commonclass();
+
+  console.log(Matrices.testTranspose());
   
-  function isLetUndefined(val) { return (val === undefined); }
-  function isLetUndefinedOrNull(val) { return (val === null || isLetUndefined(val)); }
-  function isLetEmptyNullOrUndefined(val) { return (isLetUndefinedOrNull(val) || val.length < 1); }
-  function letMustBeDefinedAndNotNull(val, varnm="varnm")
-  {
-    if (isLetEmptyNullOrUndefined(varnm)) return letMustBeDefinedAndNotNull(val, "varnm");
-    //else;//do nothing
-    if (isLetUndefinedOrNull(val)) throw new Error(varnm + " must be defined and not null!");
-    else return true;
-  }
-  function letMustNotBeEmpty(val, varnm="varnm")
-  {
-    if (isLetEmptyNullOrUndefined(varnm)) return letMustNotBeEmpty(val, "varnm");
-    //else;//do nothing
-    if (isLetEmptyNullOrUndefined(val)) throw new Error(varnm + " must not be empty!");
-    else return true;
-  }
-  function letMustBeEmpty(val, varnm="varnm")
-  {
-    if (isLetEmptyNullOrUndefined(varnm)) return letMustBeEmpty(val, "varnm");
-    //else;//do nothing
-    if (isLetEmptyNullOrUndefined(val)) return true;
-    else throw new Error(varnm + " must be empty, null, or undefined!");
-  }
-  function letMustBeBoolean(val, varnm="varnm")
-  {
-    if (isLetEmptyNullOrUndefined(varnm)) return letMustBeBoolean(val, "varnm");
-    //else;//do nothing
-    letMustBeDefinedAndNotNull(val, "varnm");
-    if (val === true || val === false) return true;
-    else throw new Error(varnm + " must be boolean, but it was not!");
-  }
-
-  function getAllIndexesOf(qstr, mystr, offset = 0)
-  {
-    //console.log("qstr = " + qstr);
-    //console.log("mystr = " + mystr);
-    //console.log("offset = " + offset);
-    if (isLetUndefinedOrNull(mystr))
-    {
-      if (isLetUndefinedOrNull(qstr)) return [0 + offset];
-      else return [-1];
-    }
-    else
-    {
-      if (isLetUndefinedOrNull(qstr)) return [-1];
-      else
-      {
-        if (isLetEmptyNullOrUndefined(mystr))
-        {
-          if (isLetEmptyNullOrUndefined(qstr)) return [0 + offset];
-          else return [-1];
-        }
-        else
-        {
-          if (qstr === mystr) return [0 + offset];
-          else
-          {
-            let myindx = mystr.indexOf(qstr);
-            //console.log("myindx = " + myindx);
-
-            if (myindx < 0) return [-1];
-            else
-            {
-              //the strings are both not empty and not null
-              //the index is at least 0
-              //take the first one, then remove it from the string + add offset
-              let myreslist = [myindx + offset];
-              let nwstr = mystr.substring(myindx + qstr.length);
-              let myoreslist = getAllIndexesOf(qstr, nwstr, offset + mystr.length - nwstr.length);
-              //console.log("RESULTS:");
-              //console.log("mystr = " + mystr);
-              //console.log("nwstr = " + nwstr);
-              //console.log("myreslist = ", myreslist);
-              //console.log("myoreslist = ", myoreslist);
-
-              if (isLetEmptyNullOrUndefined(myoreslist)) return myreslist;
-              else
-              {
-                let mynwres = [myindx + offset];
-                myoreslist.forEach((item) => {
-                  if (item < 0);
-                  else mynwres.push(item);
-                });
-                //console.log("FINAL LIST: mynwres = ", mynwres);
-                
-                return mynwres;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  function testGetAllIndexesOf()
-  {
-    console.log("BEGIN TEST 1:");
-    console.log(getAllIndexesOf("abc", "abc123abc456abcdeabc", 0));//[0, 6, 12, 17]
-    console.log("BEGIN TEST 2:");
-    console.log(getAllIndexesOf("abc", "123abc123abc456abcdeabc", 0));//[3, 9, 15, 20]
-    //                                  01234567890123456789012
-    //                                  0         1         2
-  }
-
   function getMaxReactantOrProductsNum(myarr, usereactants)
   {
-    letMustNotBeEmpty(myarr, "myarr");
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustNotBeEmpty(myarr, "myarr");
+    cc.letMustBeBoolean(usereactants, "usereactants");
     
     let myrsorpsarr = myarr.filter((mval) => (mval.isreactant === usereactants));
     //this array will now have just the reactants or just the products
@@ -164,15 +67,15 @@ function App() {
 
   function getMyLCItem(num, usereactants)
   {
-    letMustBeBoolean(usereactants, "usereactants");
-    letMustBeDefinedAndNotNull(num, "num");
+    cc.letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustBeDefinedAndNotNull(num, "num");
     if (num < 1)
     {
       throw new Error("illegal value found and used for the num here! It must be at least one!");
     }
     //else;//do nothing
 
-    if (isLetEmptyNullOrUndefined(mylcs)) return null;
+    if (cc.isLetEmptyNullOrUndefined(mylcs)) return null;
     else
     {
       for (let n = 0; n < mylcs.length; n++)
@@ -189,7 +92,7 @@ function App() {
 
   function setLCItem(nobj)
   {
-    letMustBeDefinedAndNotNull(nobj);
+    cc.letMustBeDefinedAndNotNull(nobj);
     let mynwlcs = mylcs.map((lcobj) => {
       return ((lcobj.isreactant === nobj.isreactant && lcobj.num === nobj.num) ? nobj : lcobj);
     });
@@ -198,8 +101,8 @@ function App() {
 
   function addItemToLCOrElemsArr(valobj, uselcs)
   {
-    letMustBeBoolean(uselcs, "uselcs");
-    letMustBeDefinedAndNotNull(valobj, (uselcs ? "new-lc-obj" :  "new-reactant-or-product"));
+    cc.letMustBeBoolean(uselcs, "uselcs");
+    cc.letMustBeDefinedAndNotNull(valobj, (uselcs ? "new-lc-obj" :  "new-reactant-or-product"));
     if (uselcs) setMyLCs([...mylcs, valobj]);
     else setElembaseArr([...myelembasearr, valobj]);
   }
@@ -208,7 +111,7 @@ function App() {
 
   function addNewReactantOrProduct(myarr, usereactants)
   {
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustBeBoolean(usereactants, "usereactants");
     let mynwobj = {...initrobj};
     mynwobj.canrem = true;
     mynwobj.isreactant = usereactants;
@@ -221,6 +124,8 @@ function App() {
     mynwlcitem.num = mynwobj.num;
     console.log("mynwlcitem = ", mynwlcitem);
     
+    if (lockedbases) setLockedBases(false);
+    //else;//do nothing
     addItemToElemsArr(mynwobj);
     addLCItemToLCSArr(mynwlcitem);
   }
@@ -228,7 +133,7 @@ function App() {
   //null will be returned if the item was not found
   function getMyItem(midstr)
   {
-    if (isLetEmptyNullOrUndefined(midstr)) return null;
+    if (cc.isLetEmptyNullOrUndefined(midstr)) return null;
     //else;//do nothing
     for (let n = 0; n < myelembasearr.length; n++)
     {
@@ -246,7 +151,7 @@ function App() {
 
   function addNewReactantOrProductToOne(mynum, usereactants)
   {
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustBeBoolean(usereactants, "usereactants");
     
     let myropswithnum = myelembasearr.filter((mobj) =>
       (mobj.isreactant === usereactants && mobj.num === mynum));
@@ -295,7 +200,7 @@ function App() {
   function removeFromThisOne(idstr)
   {
     console.log("remidstr = " + idstr);
-    letMustNotBeEmpty(idstr, "idstr");
+    cc.letMustNotBeEmpty(idstr, "idstr");
     let mynwarr = myelembasearr.filter((mobj) => !(mobj.id === idstr));
     console.log("mynwarr = ", mynwarr);
     setElembaseArr(mynwarr);
@@ -306,8 +211,8 @@ function App() {
 
   function getMyReactantsOrProductsFromArray(myarr, usereactants)
   {
-    letMustNotBeEmpty(myarr, "myarr");
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustNotBeEmpty(myarr, "myarr");
+    cc.letMustBeBoolean(usereactants, "usereactants");
     
     let myrsorpsarr = myarr.filter((mval) => (mval.isreactant === usereactants));
     //this array will now have just the reactants or just the products
@@ -371,12 +276,13 @@ function App() {
         let mfulkystr = "" + kynm + "_" + mindx;
         return (<ElemBaseComp midstr={mfulkystr} key={mfulkystr} getitem={getMyItem}
           showbtns={(mindx + 1 === myobjsfcnum.length)} canremthis={mobj.canrem} setitem={setMyItem}
-          addtothis={addNewReactantOrProductToOne} remfromthis={removeFromThisOne} />);
+          addtothis={addNewReactantOrProductToOne} remfromthis={removeFromThisOne}
+          islocked={lockedbases} />);
       });
       let mylcitem = getMyLCItem(n, usereactants);
       console.log("mylcitem = ", mylcitem);
 
-      letMustBeDefinedAndNotNull(mylcitem, "mylcitem");
+      cc.letMustBeDefinedAndNotNull(mylcitem, "mylcitem");
 
       myreselems.push(<div key={kynm} style={{display: "inline-block"}}>
         <input id={kynm + "coeff"} key={kynm + "coeff"} name={kynm + "coeff"} type="number" min="1"
@@ -400,7 +306,7 @@ function App() {
 
   function genReactantsOrProductsDivs(myarr, usereactants)
   {
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustBeBoolean(usereactants, "usereactants");
 
     const mynm = (usereactants ? "reactant" : "product");
     return (<div id={mynm + "s"} style={{display: "inline-block"}}>
@@ -409,7 +315,7 @@ function App() {
 
   function genControlButtons(myarr, usereactants)
   {
-    letMustBeBoolean(usereactants, "usereactants");
+    cc.letMustBeBoolean(usereactants, "usereactants");
 
     const mynm = (usereactants ? "reactant" : "product");
     const cpnm = mynm.substring(0, 1).toUpperCase() + mynm.substring(1);
@@ -512,8 +418,8 @@ function App() {
   function genEquationOrCountRows(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
     useequrows, inconetimes=false)
   {
-    letMustBeBoolean(useequrows, "useequrows");
-    letMustBeBoolean(inconetimes, "inconetimes");
+    cc.letMustBeBoolean(useequrows, "useequrows");
+    cc.letMustBeBoolean(inconetimes, "inconetimes");
 
     //the first col is the element, then the reactants, then =, then the products
     //let retzerolc = useequrows;//user preference includes the 0 * lc
@@ -522,7 +428,7 @@ function App() {
     let mybdyrws = myelems.map((elem) => {
       console.log("elem = " + elem);
 
-      if (isLetEmptyNullOrUndefined(elem)) return null;
+      if (cc.isLetEmptyNullOrUndefined(elem)) return null;
       //else;//do nothing safe to proceed
 
       let mycolsonrw = hnames.map((hnm, mhindx) => {
@@ -558,8 +464,8 @@ function App() {
   function genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
     useequrows, inconetimes=false)
   {
-    letMustBeBoolean(useequrows, "useequrows");
-    letMustBeBoolean(inconetimes, "inconetimes");
+    cc.letMustBeBoolean(useequrows, "useequrows");
+    cc.letMustBeBoolean(inconetimes, "inconetimes");
 
     //the first col is the element, then the reactants, then =, then the products
     //let retzerolc = useequrows;//user preference includes the 0 * lc
@@ -567,7 +473,7 @@ function App() {
     let mydatarwsontble = myelems.map((elem) => {
       console.log("elem = " + elem);
 
-      if (isLetEmptyNullOrUndefined(elem)) return null;
+      if (cc.isLetEmptyNullOrUndefined(elem)) return null;
       //else;//do nothing safe to proceed
 
       let mydatacellsonrw = hnames.map((hnm, mhindx) => {
@@ -598,7 +504,7 @@ function App() {
 
   function getElementAndBaseStartAndEndIndexes(hnames)
   {
-    letMustNotBeEmpty(hnames, "hnames");
+    cc.letMustNotBeEmpty(hnames, "hnames");
 
     let myelsis = [];
     let myeleis = [];
@@ -617,7 +523,7 @@ function App() {
         let lcnm = hnm.substring(0, hnm.indexOf(" * "));
         console.log("lcnm = " + lcnm);
 
-        let multiindxs = getAllIndexesOf("*", hnm, 0);
+        let multiindxs = cc.getAllIndexesOf("*", hnm, 0);
         console.log("multiindxs = ", multiindxs);
 
         //now that we know where the multiplication signs are we can get the elements and the bases now
@@ -737,9 +643,9 @@ function App() {
 
   function getReactantsAndProductsByNumArrays(myarr, mxrnum, mxpnum)
   {
-    letMustNotBeEmpty(myarr, "my-elements-arr");
-    letMustBeDefinedAndNotNull(mxrnum, "mxrnum");
-    letMustBeDefinedAndNotNull(mxpnum, "mxpnum");
+    cc.letMustNotBeEmpty(myarr, "my-elements-arr");
+    cc.letMustBeDefinedAndNotNull(mxrnum, "mxrnum");
+    cc.letMustBeDefinedAndNotNull(mxpnum, "mxpnum");
 
     const reactants = myarr.filter((mobj) => mobj.isreactant);
     const products = myarr.filter((mobj) => !mobj.isreactant);
@@ -831,7 +737,7 @@ function App() {
 
   function getUniqueElementNamesOnlyArray(myarr)
   {
-    letMustNotBeEmpty(myarr, "data-arr-of-element-objs");
+    cc.letMustNotBeEmpty(myarr, "data-arr-of-element-objs");
 
     //get the list of unique elements now
     let myelems = [];
@@ -972,14 +878,14 @@ function App() {
     let gettherws = true;
     if (mydatrws.length === 1)
     {
-      if (isLetEmptyNullOrUndefined(mydatrws[0])) gettherws = false;
+      if (cc.isLetEmptyNullOrUndefined(mydatrws[0])) gettherws = false;
       //else;//get them
     }
     //else;//get them
     if (gettherws)
     {
       mybdyrws = mydatrws.map((rarr) => {
-        if (isLetEmptyNullOrUndefined(rarr)) return null;
+        if (cc.isLetEmptyNullOrUndefined(rarr)) return null;
         //else;//do nothing
         
         let mytonleft = 0;
@@ -1015,7 +921,7 @@ function App() {
           //else;//do nothing
         }
         console.log("allbal = " + allbal);
-  
+
         noonezeroerrorfnd = (noonezeroerrorfnd || (mytonleft < 1 && 0 < mytonright) ||
           (mytonright < 1 && 0 < mytonleft));
         console.log("noonezeroerrorfnd = " + noonezeroerrorfnd);
@@ -1033,27 +939,40 @@ function App() {
     console.log("mybdyrws = ", mybdyrws);
     console.log("allbal = " + allbal);
     console.log("noonezeroerrorfnd = " + noonezeroerrorfnd);
+    if (areallequsbalanced === allbal);
+    else setAllEqusBalanced(allbal);
+    if (balerrfnd === noonezeroerrorfnd);
+    else setBalErrorFound(noonezeroerrorfnd);
     
     return (<div><table style={{border: "1px solid black"}}>
       <thead style={{border: "1px solid black"}}>{myhrw}</thead>
       <tbody style={{border: "1px solid black"}}>{mybdyrws}</tbody>
     </table>
-    <p>{(allbal ? "the equation is balanced!" : "the equation is not balanced!")}</p>
+    <p>the equation is <b>{(allbal ? "balanced!" : "not balanced!")}</b></p>
     {noonezeroerrorfnd ? (<p style={{color: "red"}}><b>{"Although having no elements on both the " +
       "products and the reactants is technically valid, having an amount on one side, but nothing " +
       "on the other is not valid!"}
       </b></p>) : null}
+    {allbal ? (<p>{"Now you can multiply or divide the LCs by any scalar constant and you will get " +
+      "another solution. CHEMICAL EQUATIONS HAVE INFINITELY MANY SOLUTIONS."}</p>) : null}
     </div>);
   }
 
   console.log("myelembasearr = ", myelembasearr);
   console.log("mylcs = ", mylcs);
+  console.log("areallequsbalanced = " + areallequsbalanced);
+  console.log("balerrfnd = " + balerrfnd);
   
   return (<div>
       <h1>Chem Equation Balancer APP</h1>
       <div>{genControlButtons(myelembasearr, true)}
-      <span key={"equarrowa"} style={{display: "inline-block", fontSize: "20px"}}>{" -> "}</span>
-        {genControlButtons(myelembasearr, false)}</div>
+        <span key={"equarrowa"} style={{display: "inline-block", fontSize: "20px"}}>{" -> "}</span>
+          {genControlButtons(myelembasearr, false)}
+        <button style={{marginLeft: "10px"}} onClick={(event) => setLockedBases(!lockedbases)}>
+          {lockedbases ? "un": ""}lock bases!</button>
+        {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
+          (<button onClick={null}>Solve It!</button>))}
+      </div>
       <div id="equ" style={{display: "inline-block"}}>
         {genReactantsOrProductsDivs(myelembasearr, true)}
           <span key={"equarrowb"} style={{display: "inline-block", fontSize: "40px"}}>{" -> "}</span>
