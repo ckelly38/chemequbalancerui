@@ -27,7 +27,8 @@ function App() {
   let [balerrfnd, setBalErrorFound] = useState(false);
   const cc = new commonclass();
 
-  console.log(Matrices.testTranspose());
+  //Matrices.testTranspose();
+  Matrices.testDeterminant();
   
   function getMaxReactantOrProductsNum(myarr, usereactants)
   {
@@ -638,7 +639,7 @@ function App() {
     console.log("mybasis = ", mybasis);
     console.log("mybaeis = ", mybaeis);
 
-    return {"myelsis": myelsis, "myeleis": myeleis, "mybasis": mybasis, "mybaeis": mybaeis,};
+    return {"myelsis": myelsis, "myeleis": myeleis, "mybasis": mybasis, "mybaeis": mybaeis};
   }
 
   function getReactantsAndProductsByNumArrays(myarr, mxrnum, mxpnum)
