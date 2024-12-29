@@ -269,8 +269,8 @@ class Matrices
         if (a === b) return true;
         //else;//do nothing
 
-        console.log(myrows[a]);
-        console.log(myrows[b]);
+        //console.log(myrows[a]);
+        //console.log(myrows[b]);
         
         let isthisrowthesame = true;
         for (let c = 0; c < myrows[a].length; c++)
@@ -282,9 +282,106 @@ class Matrices
                 break;
             }
         }
-        console.log("isthisrowthesame = " + isthisrowthesame);
+        //console.log("isthisrowthesame = " + isthisrowthesame);
 
         return isthisrowthesame;
+    }
+
+    static doSomeOpOnAMatrix(m, opstr, num)
+    {
+        let opnum = -1;
+        if (opstr === "*") opnum = 1;
+        else if (opstr === "/") opnum = 2;
+        else if (opstr === "+") opnum = 3;
+        else if (opstr === "-") opnum = 4;
+        else if (opstr === "%") opnum = 5;
+        else if (opstr === "^") opnum = 6;
+        else throw new Error("illegal operation string found!");
+
+        if (opnum === 2 || opnum === 5)
+        {
+            if (num === 0) throw new Error("cannot divide by zero!");
+            //else;//do nothing
+        }
+        //else;//do nothing
+
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(m)) return null;
+        //else;//do nothing
+
+        let dims = this.dimensions(m);
+        //console.log("dims = ", dims);
+
+        if (dims.length < 3)
+        {
+            if (dims.length < 1)
+            {
+                console.error("cannot do math because this has too small of dimensions!");
+                return m;
+            }
+            else
+            {
+                //dims.length === 1 or dims.length === 2
+                if (dims.length === 1)
+                {
+                    let nwm = m.map((val) => {
+                        if (opnum === 1) return val * num;
+                        else if (opnum === 2) return val / num;
+                        else if (opnum === 3) return val + num;
+                        else if (opnum === 4) return val - num;
+                        else if (opnum === 5) return val % num;
+                        else if (opnum === 6) return Math.pow(val, num);
+                        else throw new Error("illegal operation string found!");
+                    });
+                    return nwm;
+                }
+                else
+                {
+                    let nwm = m.map((marr) => marr.map((val) => {
+                        if (opnum === 1) return val * num;
+                        else if (opnum === 2) return val / num;
+                        else if (opnum === 3) return val + num;
+                        else if (opnum === 4) return val - num;
+                        else if (opnum === 5) return val % num;
+                        else if (opnum === 6) return Math.pow(val, num);
+                        else throw new Error("illegal operation string found!");
+                    }));
+                    return nwm;
+                }
+            }
+        }
+        else
+        {
+            console.error("cannot do math because this has too big of dimensions!");
+            return m;
+        }
+    }
+
+    //matrix multiplication mulitply two matrices here... (NOT DONE YET)
+    static multiply(a, b)
+    {
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(a) || cc.isLetEmptyNullOrUndefined(b))
+        {
+            throw new Error("cannot multiply two matrices if one is null or empty!");
+        }
+        //else;//do nothing
+
+        //can only multiply if the dimensions are similar
+        //let a be an ra x ca and b be rb x cb matrices
+        //1 row x 3 cols and a 3 rows x 3 cols can be multiplied
+        //(as long as there is a match with a 1 x k and a k x k, you can)
+        //a can only be multiplied to b if the number of cols on a === the number of rows on b
+        //then we do the dot product
+        //2r x 3c times 3r x 2c = 2r x 2c (remaining)
+        //[a, b, c]   [g, h]   [ag+bi+ck, ah+bj+cl]
+        //[d, e, f] x [i, j] = [dg+ei+fk, dh+ej+fl]
+        //            [k, l]
+        //2r x 3c times 3r x 3c = 2r x 3c (remaining)
+        //[a, b, c]   [g, h, i]   [ag+bj+cm, ah+bk+cn, ai+bl+co]
+        //[d, e, f] x [j, k, l] = [dg+ej+fm, dh+ek+fn, di+el+fo]
+        //            [m, n, o]
+        throw new Error("NOT DONE YET...!");
     }
 
     static canRowABeMultipliedByAConstantToGetRowB(a, b, myrows)
@@ -292,8 +389,8 @@ class Matrices
         if (a === b) return true;
         //else;//do nothing
 
-        console.log(myrows[a]);
-        console.log(myrows[b]);
+        //console.log(myrows[a]);
+        //console.log(myrows[b]);
         
         let canrowabembyktogetb = true;
         let setc = true;
@@ -307,9 +404,9 @@ class Matrices
                 {
                     myconstant = myrows[b][c] / myrows[a][c];
                     setc = false;
-                    console.log("myrows[" + b + "][" + c + "] = " + myrows[b][c]);
-                    console.log("myrows[" + a + "][" + c + "] = " + myrows[a][c]);
-                    console.log("myconstant = " + myconstant);
+                    //console.log("myrows[" + b + "][" + c + "] = " + myrows[b][c]);
+                    //console.log("myrows[" + a + "][" + c + "] = " + myrows[a][c]);
+                    //console.log("myconstant = " + myconstant);
                 }
             }
             else
@@ -321,8 +418,8 @@ class Matrices
                     break;
                 }
             }
-        }
-        console.log("canrowabembyktogetb = " + canrowabembyktogetb);
+        }//end of c for loop
+        //console.log("canrowabembyktogetb = " + canrowabembyktogetb);
 
         return canrowabembyktogetb;
     }
@@ -343,6 +440,8 @@ class Matrices
     static isDiagnalMatrix(m)
     {
         let cc = new commonclass();
+        //if (cc.isLetUndefinedOrNull(m)) return false;
+        //else if (m.length < 1) return true;
         if (cc.isLetEmptyNullOrUndefined(m)) return false;
         else
         {
@@ -352,7 +451,7 @@ class Matrices
 
             if (dims.length < 3)
             {
-                if (dims.length === 1) return true;
+                if (dims.length === 1) return (m.length === 1);
                 else
                 {
                     for (let r = 0; r < m.length; r++)
@@ -387,10 +486,10 @@ class Matrices
         if (cc.isLetEmptyNullOrUndefined(m)) return null;
         //else;//do nothing
         let dims = this.dimensions(m);
-        console.log("m = ", m);
-        console.log("r = " + r);
-        console.log("c = " + c);
-        console.log("dims = ", dims);
+        //console.log("m = ", m);
+        //console.log("r = " + r);
+        //console.log("c = " + c);
+        //console.log("dims = ", dims);
 
         if (dims.length < 2 || 2 < dims.length) return null;
         //else;//do nothing proceed below
@@ -424,6 +523,85 @@ class Matrices
     {
         if (r < 0 || c < 0) throw new Error("both r and c cannot be negative!");
         else return ((((r + 1) + (c + 1)) % 2 === 0) ? 1 : -1);
+    }
+
+    //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
+    static getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum)
+    {
+        console.log("r = " + r);
+        console.log("num = " + num);
+        console.log("arr = ", arr);
+        if (r < 0) throw new Error("r is not allowed to be negative!");
+        //else;//do nothing
+
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(arr)) return 0;
+        else
+        {
+            let cnt = 0;
+            for (let c = 0; c < arr[r].length; c++)
+            {
+                console.log("arr[" + r + "][" + c + "] = " + arr[r][c]);
+                if (opnum === 1)
+                {
+                    if (arr[r][c] === num) cnt++;
+                    //else;//do nothing
+                }
+                else if (opnum === 2)
+                {
+                    if (arr[r][c] < num) cnt++;
+                    //else;//do nothing
+                }
+                else if (opnum === 3)
+                {
+                    if (arr[r][c] < num || arr[r][c] === num) cnt++;
+                    //else;//do nothing
+                }
+                else if (opnum === 4)
+                {
+                    if (num < arr[r][c]) cnt++;
+                    //else;//do nothing
+                }
+                else if (opnum === 5)
+                {
+                    if (num < arr[r][c] || arr[r][c] === num) cnt++;
+                    //else;//do nothing
+                }
+                else throw new Error("illegal operation number found and used here!");
+            }
+            return cnt;
+        }
+    }
+    //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
+    static getNumberOfANumOnArrWithDesiredOPStr(r, num, arr, opstr)
+    {
+        let opnum = -1;
+        if (opstr === "=") opnum = 1;
+        else if (opstr === "<") opnum = 2;
+        else if (opstr === "<=") opnum = 3;
+        else if (opstr === ">") opnum = 4;
+        else if (opstr === "=>") opnum = 5;
+        else throw new Error("illegal operation string found and used here!");
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum);
+    }
+    static getNumberOfANumOnArr(r, num, arr) {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 1);
+    }
+    static getNumberOfNumsUnderNumOnArr(r, num, arr)
+    {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 2);
+    }
+    static getNumberOfNumsAtOrUnderNumOnArr(r, num, arr)
+    {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 3);
+    }
+    static getNumberOfNumsAboveNumOnArr(r, num, arr)
+    {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 4);
+    }
+    static getNumberOfNumsAtOrAboveNumOnArr(r, num, arr)
+    {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 5);
     }
 
     static determinant(m)
@@ -534,8 +712,317 @@ class Matrices
                 let myrw = -1;
                 let mycl = -1;
                 
-                //NEED TO DO SOMETHING HERE...
-                console.log("NEED TO DO SOMETHING HERE!");
+                //figure out how many zeros are in the rows
+                //then the cols, then same for 1s.
+                let numzerosonrws = myrows.map((arr, rindx) =>
+                    this.getNumberOfANumOnArr(rindx, 0, myrows));
+                let numonesonrws = myrows.map((arr, rindx) =>
+                    this.getNumberOfANumOnArr(rindx, 1, myrows));
+                let numzerosoncls = mycols.map((arr, rindx) =>
+                    this.getNumberOfANumOnArr(rindx, 0, mycols));
+                let numonesoncls = mycols.map((arr, rindx) =>
+                    this.getNumberOfANumOnArr(rindx, 1, mycols));
+                console.log("numzerosonrws = ", numzerosonrws);
+                console.log("numonesonrws = ", numonesonrws);
+                console.log("numzerosoncls = ", numzerosoncls);
+                console.log("numonesoncls = ", numonesoncls);
+
+                let numslessthantenonrws = myrows.map((arr, rindx) =>
+                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, myrows, "<"));
+                let numslessthantenoncls = myrows.map((arr, rindx) =>
+                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, mycols, "<"));
+                console.log("numslessthantenonrws = ", numslessthantenonrws);
+                console.log("numslessthantenoncls = ", numslessthantenoncls);
+
+                //if a row or column has 0s use it, next use 1, then the max under 10
+                //then arbitrarily use the first row
+                //if it has a zero, now need to pick the row or col with the most
+                //same for 1s, then same for max under 10, then arbitrarily use the first row
+                let zerofnd = false;
+                for (let c = 0; c < numzerosonrws.length; c++)
+                {
+                    if (0 < numzerosonrws[c])
+                    {
+                        zerofnd = true;
+                        break;
+                    }
+                    //else;//do nothing
+                }
+                let onefnd = false;
+                for (let c = 0; c < numonesonrws.length; c++)
+                {
+                    if (0 < numonesonrws[c])
+                    {
+                        onefnd = true;
+                        break;
+                    }
+                    //else;//do nothing
+                }
+                let numundrtenfnd = false;
+                for (let c = 0; c < numslessthantenonrws.length; c++)
+                {
+                    if (0 < numslessthantenonrws[c])
+                    {
+                        numundrtenfnd = true;
+                        break;
+                    }
+                    //else;//do nothing
+                }
+                console.log("zerofnd = " + zerofnd);
+                console.log("onefnd = " + onefnd);
+                console.log("numundrtenfnd = " + numundrtenfnd);
+
+                if (zerofnd)
+                {
+                    //get the max on rows
+                    //then the max on cols
+                    //if one has more than the other use it
+                    //if they are equal arbitrarily use row with the first zero found
+                    let mxzerosfndonrws = -1;
+                    let mxrwi = -1;
+                    for (let c = 0; c < numzerosonrws.length; c++)
+                    {
+                        if (0 < numzerosonrws[c])
+                        {
+                            if (mxrwi < 0)
+                            {
+                                mxrwi = c;
+                                mxzerosfndonrws = numzerosonrws[c];
+                            }
+                            else
+                            {
+                                if (mxzerosfndonrws < numzerosonrws[c])
+                                {
+                                    mxrwi = c;
+                                    mxzerosfndonrws = numzerosonrws[c];
+                                }
+                                //else;//do nothing
+                            }
+                        }
+                        //else;//do nothing
+                    }//end of c for loop
+                    console.log("mxzerosfndonrws = " + mxzerosfndonrws);
+                    console.log("mxrwi = " + mxrwi);
+
+                    if (mxrwi < 0 || numzerosonrws.length - 1 < mxrwi)
+                    {
+                        throw new Error("illegal index value found and used here for mxrwi!");
+                    }
+                    //else;//do nothing
+
+                    let mxzerosfndoncls = -1;
+                    let mxcli = -1;
+                    for (let c = 0; c < numzerosoncls.length; c++)
+                    {
+                        if (0 < numzerosoncls[c])
+                        {
+                            if (mxcli < 0)
+                            {
+                                mxcli = c;
+                                mxzerosfndoncls = numzerosoncls[c];
+                            }
+                            else
+                            {
+                                if (mxzerosfndoncls < numzerosoncls[c])
+                                {
+                                    mxcli = c;
+                                    mxzerosfndoncls = numzerosoncls[c];
+                                }
+                                //else;//do nothing
+                            }
+                        }
+                        //else;//do nothing
+                    }//end of c for loop
+                    console.log("mxzerosfndoncls = " + mxzerosfndoncls);
+                    console.log("mxcli = " + mxcli);
+
+                    if (mxcli < 0 || numzerosoncls.length - 1 < mxcli)
+                    {
+                        throw new Error("illegal index value found and used here for mxcli!");
+                    }
+                    //else;//do nothing
+
+                    if (mxzerosfndonrws < mxzerosfndoncls)
+                    {
+                        userow = false;
+                        mycl = mxcli;
+                    }
+                    else
+                    {
+                        userow = true;
+                        myrw = mxrwi;
+                    }
+                }
+                else
+                {
+                    if (onefnd)
+                    {
+                        let mxonesfndonrws = -1;
+                        let mxrwi = -1;
+                        for (let c = 0; c < numonesonrws.length; c++)
+                        {
+                            if (0 < numonesonrws[c])
+                            {
+                                if (mxrwi < 0)
+                                {
+                                    mxrwi = c;
+                                    mxonesfndonrws = numonesonrws[c];
+                                }
+                                else
+                                {
+                                    if (mxonesfndonrws < numonesonrws[c])
+                                    {
+                                        mxrwi = c;
+                                        mxonesfndonrws = numonesonrws[c];
+                                    }
+                                    //else;//do nothing
+                                }
+                            }
+                            //else;//do nothing
+                        }//end of c for loop
+                        console.log("mxonesfndonrws = " + mxonesfndonrws);
+                        console.log("mxrwi = " + mxrwi);
+
+                        if (mxrwi < 0 || numonesonrws.length - 1 < mxrwi)
+                        {
+                            throw new Error("illegal index value found and used here for mxrwi!");
+                        }
+                        //else;//do nothing
+
+                        let mxonesfndoncls = -1;
+                        let mxcli = -1;
+                        for (let c = 0; c < numonesoncls.length; c++)
+                        {
+                            if (0 < numonesoncls[c])
+                            {
+                                if (mxcli < 0)
+                                {
+                                    mxcli = c;
+                                    mxonesfndoncls = numonesoncls[c];
+                                }
+                                else
+                                {
+                                    if (mxonesfndoncls < numonesoncls[c])
+                                    {
+                                        mxcli = c;
+                                        mxonesfndoncls = numonesoncls[c];
+                                    }
+                                    //else;//do nothing
+                                }
+                            }
+                            //else;//do nothing
+                        }//end of c for loop
+                        console.log("mxonesfndoncls = " + mxonesfndoncls);
+                        console.log("mxcli = " + mxcli);
+
+                        if (mxcli < 0 || numonesoncls.length - 1 < mxcli)
+                        {
+                            throw new Error("illegal index value found and used here for mxcli!");
+                        }
+                        //else;//do nothing
+
+                        if (mxonesfndonrws < mxonesfndoncls)
+                        {
+                            userow = false;
+                            mycl = mxcli;
+                        }
+                        else
+                        {
+                            userow = true;
+                            myrw = mxrwi;
+                        }
+                    }
+                    else
+                    {
+                        if (numundrtenfnd)
+                        {
+                            let mxnumsundertenfndonrws = -1;
+                            let mxrwi = -1;
+                            for (let c = 0; c < numslessthantenonrws.length; c++)
+                            {
+                                if (0 < numslessthantenonrws[c])
+                                {
+                                    if (mxrwi < 0)
+                                    {
+                                        mxrwi = c;
+                                        mxnumsundertenfndonrws = numslessthantenonrws[c];
+                                    }
+                                    else
+                                    {
+                                        if (mxnumsundertenfndonrws < numslessthantenonrws[c])
+                                        {
+                                            mxrwi = c;
+                                            mxnumsundertenfndonrws = numslessthantenonrws[c];
+                                        }
+                                        //else;//do nothing
+                                    }
+                                }
+                                //else;//do nothing
+                            }//end of c for loop
+                            console.log("mxnumsundertenfndonrws = " + mxnumsundertenfndonrws);
+                            console.log("mxrwi = " + mxrwi);
+
+                            if (mxrwi < 0 || numslessthantenonrws.length - 1 < mxrwi)
+                            {
+                                throw new Error("illegal index value found and used here for mxrwi!");
+                            }
+                            //else;//do nothing
+
+                            let mxnumsundertenfndoncls = -1;
+                            let mxcli = -1;
+                            for (let c = 0; c < numslessthantenoncls.length; c++)
+                            {
+                                if (0 < numslessthantenoncls[c])
+                                {
+                                    if (mxcli < 0)
+                                    {
+                                        mxcli = c;
+                                        mxnumsundertenfndoncls = numslessthantenoncls[c];
+                                    }
+                                    else
+                                    {
+                                        if (mxnumsundertenfndoncls < numslessthantenoncls[c])
+                                        {
+                                            mxcli = c;
+                                            mxnumsundertenfndoncls = numslessthantenoncls[c];
+                                        }
+                                        //else;//do nothing
+                                    }
+                                }
+                                //else;//do nothing
+                            }//end of c for loop
+                            console.log("mxnumsundertenfndoncls = " + mxnumsundertenfndoncls);
+                            console.log("mxcli = " + mxcli);
+
+                            if (mxcli < 0 || numslessthantenoncls.length - 1 < mxcli)
+                            {
+                                throw new Error("illegal index value found and used here for mxcli!");
+                            }
+                            //else;//do nothing
+
+                            if (mxnumsundertenfndonrws < mxnumsundertenfndoncls)
+                            {
+                                userow = false;
+                                mycl = mxcli;
+                            }
+                            else
+                            {
+                                userow = true;
+                                myrw = mxrwi;
+                            }
+                        }
+                        else
+                        {
+                            //arbitrarily make a choice...
+                            userow = true;
+                            myrw = 0;
+                        }
+                    }
+                }
+                console.log("userow = " + userow);
+                console.log("myrw = " + myrw);
+                console.log("mycl = " + mycl);
+
 
                 let mydval = 0;
                 if (userow)
@@ -584,6 +1071,10 @@ class Matrices
         console.log("myom = ", myom);
         console.log(this.dimensions(myom));
         console.log(this.determinant(myom));//0
+
+        console.log(this.doSomeOpOnAMatrix(myom, "*", 2));
+        console.log(this.doSomeOpOnAMatrix([1, 2, 3], "*", 2));
+        //throw new Error("NEED TO TEST MATH ON WHOLE MATRIX RESULTS NOW!");
 
         let mytmom = this.transpose(myom);
         console.log("mytmom = ", mytmom);
