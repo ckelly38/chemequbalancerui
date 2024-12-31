@@ -28,7 +28,9 @@ function App() {
   const cc = new commonclass();
 
   //Matrices.testTranspose();
-  Matrices.testDeterminant();
+  //Matrices.testDeterminant();
+  Matrices.testInverse();
+  Matrices.testCramersRule();
   
   function getMaxReactantOrProductsNum(myarr, usereactants)
   {

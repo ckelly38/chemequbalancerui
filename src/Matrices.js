@@ -264,7 +264,7 @@ class Matrices
         }
     }
 
-    static isRowTheSame(a, b, myrows)
+    static areTwoRowsOrColsTheSame(a, b, myrows)
     {
         if (a === b) return true;
         //else;//do nothing
@@ -322,11 +322,13 @@ class Matrices
             else
             {
                 //dims.length === 1 or dims.length === 2
+                //added rounding to account for the rounding error so the inverse of a matrix
+                //can be closer to being accurate
                 if (dims.length === 1)
                 {
                     let nwm = m.map((val) => {
-                        if (opnum === 1) return val * num;
-                        else if (opnum === 2) return val / num;
+                        if (opnum === 1) return (Math.round((val * num) * 10000) / 10000);
+                        else if (opnum === 2) return (Math.round((val / num) * 10000) / 10000);
                         else if (opnum === 3) return val + num;
                         else if (opnum === 4) return val - num;
                         else if (opnum === 5) return val % num;
@@ -338,8 +340,8 @@ class Matrices
                 else
                 {
                     let nwm = m.map((marr) => marr.map((val) => {
-                        if (opnum === 1) return val * num;
-                        else if (opnum === 2) return val / num;
+                        if (opnum === 1) return (Math.round((val * num) * 10000) / 10000);
+                        else if (opnum === 2) return (Math.round((val / num) * 10000) / 10000);
                         else if (opnum === 3) return val + num;
                         else if (opnum === 4) return val - num;
                         else if (opnum === 5) return val % num;
@@ -357,7 +359,7 @@ class Matrices
         }
     }
 
-    //matrix multiplication mulitply two matrices here... (NOT DONE YET)
+    //matrix multiplication mulitply two matrices here...
     static multiply(a, b)
     {
         let cc = new commonclass();
@@ -381,7 +383,181 @@ class Matrices
         //[a, b, c]   [g, h, i]   [ag+bj+cm, ah+bk+cn, ai+bl+co]
         //[d, e, f] x [j, k, l] = [dg+ej+fm, dh+ek+fn, di+el+fo]
         //            [m, n, o]
-        throw new Error("NOT DONE YET...!");
+        
+        let dimsa = this.dimensions(a);
+        let dimsb = this.dimensions(b);
+        console.log("a = ", a);
+        console.log("b = ", b);
+        console.log("dimsa = ", dimsa);
+        console.log("dimsb = ", dimsb);
+
+        cc.letMustNotBeEmpty(dimsa, "dimsa");
+        cc.letMustNotBeEmpty(dimsb, "dimsb");
+
+        //if can, then do else error
+        if (dimsa.length < 3 && dimsa.length < 3)
+        {
+            //if length is 1, it is a 1xdims[0] value, meaning 1 row x ca cols
+            //if length is 2, then it is rxc where the r is the first dimension and c is the second
+            //we will also create a new matrix of resultant dimensions
+            let numrsa = 0;
+            let numrsb = 0;
+            let numcsa = 0;
+            let numcsb = 0;
+            if (dimsa.length === 1)
+            {
+                numrsa = 1;
+                numcsa = dimsa[0];
+            }
+            else
+            {
+                numrsa = dimsa[0];
+                numcsa = dimsa[1];
+            }
+            if (dimsb.length === 1)
+            {
+                numrsb = 1;
+                numcsb = dimsb[0];
+            }
+            else
+            {
+                numrsb = dimsb[0];
+                numcsb = dimsb[1];
+            }
+            console.log("a is a matrix with " + numrsa + " rows and " + numcsa + " cols!");
+            console.log("b is a matrix with " + numrsb + " rows and " + numcsb + " cols!");
+
+            if (numcsa === numrsb)
+            {
+                console.log("initially can multiply!");
+            }
+            else
+            {
+                //cannot multiply
+                console.log("initially cannot multiply! Might be able to multiply a " +
+                    "transpose of a 1D array otherwise cannot multiply!");
+                if (dimsa.length === 1)
+                {
+                    if (numrsa === numrsb) return this.multiply(this.transpose(a), b);
+                    //else;//do nothing
+                }
+                //else;//do nothing
+                if (dimsb.length === 1)
+                {
+                    if (numcsa === numcsb) return this.multiply(a, this.transpose(b));
+                    //else;//do nothing
+                }
+                //else;//do nothing
+
+                //handle the scalar multiplication here
+                if (numrsa === 1 && numcsa === 1)
+                {
+                    if (numrsb === 1 && numcsb === 1) return [a[0] * b[0]];
+                    else return this.doSomeOpOnAMatrix(b, "*", a[0]);
+                }
+                else
+                {
+                    if (numrsb === 1 && numcsb === 1) return this.doSomeOpOnAMatrix(a, "*", b[0]);
+                    //else;//do nothing
+                }
+                
+                throw new Error("cannot multiply these matrices or not by a legal transpose of " +
+                    "a 1D array!");
+            }
+            console.log("can mutliply these matrices!");
+
+            let resnumrs = numrsa;
+            let resnumcs = numcsb;
+            console.log("resmatrix is a matrix with " + resnumrs + " rows and " + resnumcs + " cols!");
+            
+            //initialize the new matrix
+            let resm = [];
+            if (1 < resnumrs)
+            {
+                for (let r = 0; r < resnumrs; r++)
+                {
+                    let myrwarr = [];
+                    for (let c = 0; c < resnumcs; c++) myrwarr.push(0);
+                    resm.push(myrwarr);
+                }
+            }
+            else for (let c = 0; c < resnumcs; c++) resm.push(0);
+
+            //col in a = row in b indexes
+            //row in a = row in res indexes
+            //col in b = col in res indexes
+            if (1 < resnumrs)
+            {
+                for (let ra = 0; ra < a.length; ra++)
+                {
+                    for (let cb = 0; cb < numcsb; cb++)
+                    {
+                        if (1 < dimsb.length)
+                        {
+                            for (let rb = 0; rb < b.length; rb++)
+                            {
+                                console.log("a[" + ra + "][" + rb + "] = " + a[ra][rb]);
+                                console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
+                                console.log("mulitplied = " + (a[ra][rb] * b[rb][cb]));
+                                console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                                
+                                resm[ra][cb] += (a[ra][rb] * b[rb][cb]);
+                                console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                            }//end of rb = ca
+                        }
+                        else
+                        {
+                            //dimsb.length is 1
+                            console.log("a[" + ra + "][0] = " + a[ra][0]);
+                            console.log("b[" + cb + "] = " + b[cb]);
+                            console.log("mulitplied = " + (a[ra][0] * b[cb]));
+                            console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                            
+                            resm[ra][cb] += (a[ra][0] * b[cb]);
+                            console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                        }
+                    }//end of cb
+                }//end of ra
+            }
+            else
+            {
+                //resnumrs is 1
+                for (let cb = 0; cb < numcsb; cb++)
+                {
+                    for (let rb = 0; rb < b.length; rb++)
+                    {
+                        console.log("a[" + rb + "] = " + a[rb]);
+                        console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
+                        console.log("mulitplied = " + (a[rb] * b[rb][cb]));
+                        console.log("OLD resm[" + cb + "] = " + resm[cb]);
+                        
+                        resm[cb] += (a[rb] * b[rb][cb]);
+                        console.log("NEW resm[" + cb + "] = " + resm[cb]);
+                    }//end of rb = ca
+                }//end of cb
+            }
+            console.log("FINAL resm = ", resm);
+
+            return resm;
+        }
+        else throw new Error("cannot multiply these matrices!");
+    }
+    static testMuliply()
+    {
+        let mygentbytm = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+        console.log(this.multiply([2], mygentbytm));//[2, 4, 6], [8, 10, 12], [14, 16, 18];
+        console.log(this.multiply(this.identity([3, 3]), mygentbytm));//mygentbytm
+        
+        let mytbytwom = [[7, 8], [9, 10], [11, 12]];
+        let mytwobytm = [[1, 2, 3], [4, 5, 6]];
+        console.log(this.multiply(mytwobytm, mytbytwom));//[58, 64], [139, 154]
+        
+        let mytbyfr = [[13, 9, 7, 15], [8, 7, 4, 6], [6, 4, 0, 3]];
+        console.log(this.multiply([3, 4, 2], mytbyfr));//[83, 63, 37, 75]
+        console.log(this.multiply([1, 2, 3], [[4], [5], [6]]));//[32]
+        console.log(this.multiply([[4], [5], [6]], [1, 2, 3]));//[[4, 8, 12], [5, 10, 15], [6, 12, 18]]
+        
+        //throw new Error("NOT DONE YET...!");
     }
 
     static canRowABeMultipliedByAConstantToGetRowB(a, b, myrows)
@@ -407,6 +583,7 @@ class Matrices
                     //console.log("myrows[" + b + "][" + c + "] = " + myrows[b][c]);
                     //console.log("myrows[" + a + "][" + c + "] = " + myrows[a][c]);
                     //console.log("myconstant = " + myconstant);
+                    c = -1;
                 }
             }
             else
@@ -604,6 +781,129 @@ class Matrices
         return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 5);
     }
 
+    //this errors out if not a 2D matrix
+    static replaceARowOrColWith(m, nclorrw, rorci, subcols)
+    {
+        //if matrix is not a 2d matrix, this errors out
+        if (rorci < 0) throw new Error("rorci must not be negative!");
+        //else;//do nothing
+
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(m, "m");
+        cc.letMustBeBoolean(subcols, "subcols");
+        let mydims = this.dimensions(m);
+        if (mydims.length < 2) throw new Error("this must be at minimum a 2D matrix!");
+        //else;//do nothing
+
+        if (subcols)
+        {
+            //replacing a col
+            if (nclorrw.length === mydims[1]);
+            else throw new Error("the col was not the same length as the matrix column!");
+
+            //[1, 2, 3]    [1, [12], 3] brackets added around answer to show where it is only
+            //[4, 5, 6] to [4, [7], 6]  brackets are not going to be present in result
+            //[7, 8, 9]    [7, [20], 9]
+
+            return m.map((marr, rindx) => marr.map((val, cindx) => {
+                return ((cindx === rorci) ? nclorrw[rindx] : val);
+            }));
+        }
+        else
+        {
+            //replacing a row
+            if (nclorrw.length === mydims[0]);
+            else throw new Error("the row was not the same length as the matrix row!");
+            return m.map((marr, rindx) => ((rindx === rorci) ? nclorrw : marr));
+        }
+    }
+    static replaceARowWith(m, nclorrw, rorci) {
+        return this.replaceARowOrColWith(m, nclorrw, rorci, false);
+    }
+    static replaceAColWith(m, nclorrw, rorci) {
+        return this.replaceARowOrColWith(m, nclorrw, rorci, true);
+    }
+
+
+    //HELPER METHODS FOR GETTING THE DETERMINANT (FOR PICKING WHERE TO START)
+
+    static maxItemsFoundOnMyArray(myarr)
+    {
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(myarr, "myarr");
+
+        let mxnumfnd = -1;
+        let mxrorci = -1;
+        for (let c = 0; c < myarr.length; c++)
+        {
+            if (0 < myarr[c])
+            {
+                if (mxrorci < 0)
+                {
+                    mxrorci = c;
+                    mxnumfnd = myarr[c];
+                }
+                else
+                {
+                    if (mxnumfnd < myarr[c])
+                    {
+                        mxrorci = c;
+                        mxnumfnd = myarr[c];
+                    }
+                    //else;//do nothing
+                }
+            }
+            //else;//do nothing
+        }//end of c for loop
+        console.log("mxnumfnd = " + mxnumfnd);
+        console.log("mxrorci = " + mxrorci);
+
+        if (mxrorci < 0 || myarr.length - 1 < mxrorci)
+        {
+            throw new Error("illegal index value found and used here for mxrorci!");
+        }
+        //else;//do nothing
+
+        return {"maxnumfound": mxnumfnd, "maxroworcoli": mxrorci};
+    }
+
+    static getUseRowAndColIndexsInfo(rwarr, clarr, basenmforarrs="mxnumfndon")
+    {
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(basenmforarrs))
+        {
+            return this.getUseRowAndColIndexsInfo(rwarr, clarr, "mxnumfndon");
+        }
+        //else;//do nothing
+
+        let userow = true;
+        let mycl = -1;
+        let myrw = -1;
+        let mymxitemsonarrzerosrw = this.maxItemsFoundOnMyArray(rwarr);
+        let mxnumfndonrws = mymxitemsonarrzerosrw.maxnumfound;
+        let mxrwi = mymxitemsonarrzerosrw.maxroworcoli;
+        console.log(basenmforarrs + "rws = " + mxnumfndonrws);
+        console.log("mxrwi = " + mxrwi);
+
+        let mymxitemsonarrzeroscl = this.maxItemsFoundOnMyArray(clarr);
+        let mxnumfndoncls = mymxitemsonarrzeroscl.maxnumfound;
+        let mxcli = mymxitemsonarrzeroscl.maxroworcoli;
+        console.log(basenmforarrs + "cls = " + mxnumfndoncls);
+        console.log("mxcli = " + mxcli);
+
+        if (mxnumfndonrws < mxnumfndoncls)
+        {
+            userow = false;
+            mycl = mxcli;
+        }
+        else
+        {
+            userow = true;
+            myrw = mxrwi;
+        }
+        return {"userow": userow, "myrw": myrw, "mycl": mycl};
+    }
+
     static determinant(m)
     {
         let cc = new commonclass();
@@ -645,32 +945,23 @@ class Matrices
 
                 //take some row r and go accross all of the columns comparing
                 //the values against other rows
-                for (let c = 0; c < mycols.length; c++)
+                for (let n = 0; n < 2; n++)
                 {
-                    console.log("mycols[" + c + "] = ", mycols[c]);
-                    if (this.doesRowOrColHaveAllZeros(mycols[c])) return 0;
-                    //else;//do nothing
-                    for (let k = c + 1; k < mycols.length; k++)
+                    let myarr = ((n === 0) ? mycols : myrows);
+                    let mytpstr = ((n === 0) ? "mycols" : "myrows");
+                    for (let rorc = 0; rorc < myarr.length; rorc++)
                     {
-                        console.log("mycols[" + k + "] = ", mycols[k]);
-                        if (this.isRowTheSame(c, k, mycols)) return 0;
+                        console.log(mytpstr + "[" + rorc + "] = ", myarr[rorc]);
+                        if (this.doesRowOrColHaveAllZeros(myarr[rorc])) return 0;
                         //else;//do nothing
-                        if (this.canRowABeMultipliedByAConstantToGetRowB(c, k, mycols)) return 0;
-                        //else;//do nothing
-                    }
-                }
-                for (let r = 0; r < myrows.length; r++)
-                {
-                    console.log("myrows[" + r + "] = ", myrows[r]);
-                    if (this.doesRowOrColHaveAllZeros(myrows[r])) return 0;
-                    //else;//do nothing
-                    for (let k = r + 1; k < myrows.length; k++)
-                    {
-                        console.log("myrows[" + k + "] = ", myrows[k]);
-                        if (this.isRowTheSame(r, k, myrows)) return 0;
-                        //else;//do nothing
-                        if (this.canRowABeMultipliedByAConstantToGetRowB(r, k, myrows)) return 0;
-                        //else;//do nothing
+                        for (let k = rorc + 1; k < myarr.length; k++)
+                        {
+                            console.log(mytpstr + "[" + k + "] = ", myarr[k]);
+                            if (this.areTwoRowsOrColsTheSame(rorc, k, myarr)) return 0;
+                            //else;//do nothing
+                            if (this.canRowABeMultipliedByAConstantToGetRowB(rorc, k, myarr)) return 0;
+                            //else;//do nothing
+                        }
                     }
                 }
                 
@@ -739,34 +1030,23 @@ class Matrices
                 //if it has a zero, now need to pick the row or col with the most
                 //same for 1s, then same for max under 10, then arbitrarily use the first row
                 let zerofnd = false;
-                for (let c = 0; c < numzerosonrws.length; c++)
-                {
-                    if (0 < numzerosonrws[c])
-                    {
-                        zerofnd = true;
-                        break;
-                    }
-                    //else;//do nothing
-                }
                 let onefnd = false;
-                for (let c = 0; c < numonesonrws.length; c++)
-                {
-                    if (0 < numonesonrws[c])
-                    {
-                        onefnd = true;
-                        break;
-                    }
-                    //else;//do nothing
-                }
                 let numundrtenfnd = false;
-                for (let c = 0; c < numslessthantenonrws.length; c++)
+                for (let n = 0; n < 3; n++)
                 {
-                    if (0 < numslessthantenonrws[c])
+                    let myarr = ((n === 0) ? numzerosonrws :
+                        ((n === 1) ? numonesonrws : numslessthantenonrws));
+                    for (let c = 0; c < myarr.length; c++)
                     {
-                        numundrtenfnd = true;
-                        break;
+                        if (0 < myarr[c])
+                        {
+                            if (n === 0) zerofnd = true;
+                            else if (n === 1) onefnd = true;
+                            else numundrtenfnd = true;
+                            break;
+                        }
+                        //else;//do nothing
                     }
-                    //else;//do nothing
                 }
                 console.log("zerofnd = " + zerofnd);
                 console.log("onefnd = " + onefnd);
@@ -778,238 +1058,32 @@ class Matrices
                     //then the max on cols
                     //if one has more than the other use it
                     //if they are equal arbitrarily use row with the first zero found
-                    let mxzerosfndonrws = -1;
-                    let mxrwi = -1;
-                    for (let c = 0; c < numzerosonrws.length; c++)
-                    {
-                        if (0 < numzerosonrws[c])
-                        {
-                            if (mxrwi < 0)
-                            {
-                                mxrwi = c;
-                                mxzerosfndonrws = numzerosonrws[c];
-                            }
-                            else
-                            {
-                                if (mxzerosfndonrws < numzerosonrws[c])
-                                {
-                                    mxrwi = c;
-                                    mxzerosfndonrws = numzerosonrws[c];
-                                }
-                                //else;//do nothing
-                            }
-                        }
-                        //else;//do nothing
-                    }//end of c for loop
-                    console.log("mxzerosfndonrws = " + mxzerosfndonrws);
-                    console.log("mxrwi = " + mxrwi);
-
-                    if (mxrwi < 0 || numzerosonrws.length - 1 < mxrwi)
-                    {
-                        throw new Error("illegal index value found and used here for mxrwi!");
-                    }
-                    //else;//do nothing
-
-                    let mxzerosfndoncls = -1;
-                    let mxcli = -1;
-                    for (let c = 0; c < numzerosoncls.length; c++)
-                    {
-                        if (0 < numzerosoncls[c])
-                        {
-                            if (mxcli < 0)
-                            {
-                                mxcli = c;
-                                mxzerosfndoncls = numzerosoncls[c];
-                            }
-                            else
-                            {
-                                if (mxzerosfndoncls < numzerosoncls[c])
-                                {
-                                    mxcli = c;
-                                    mxzerosfndoncls = numzerosoncls[c];
-                                }
-                                //else;//do nothing
-                            }
-                        }
-                        //else;//do nothing
-                    }//end of c for loop
-                    console.log("mxzerosfndoncls = " + mxzerosfndoncls);
-                    console.log("mxcli = " + mxcli);
-
-                    if (mxcli < 0 || numzerosoncls.length - 1 < mxcli)
-                    {
-                        throw new Error("illegal index value found and used here for mxcli!");
-                    }
-                    //else;//do nothing
-
-                    if (mxzerosfndonrws < mxzerosfndoncls)
-                    {
-                        userow = false;
-                        mycl = mxcli;
-                    }
-                    else
-                    {
-                        userow = true;
-                        myrw = mxrwi;
-                    }
+                    //index is valid this was already checked
+                    let myuserwclobj = this.getUseRowAndColIndexsInfo(numzerosonrws,
+                        numzerosoncls, "mxzerosfndon");
+                    userow = myuserwclobj.userow;
+                    myrw = myuserwclobj.myrw;
+                    mycl = myuserwclobj.mycl;
                 }
                 else
                 {
                     if (onefnd)
                     {
-                        let mxonesfndonrws = -1;
-                        let mxrwi = -1;
-                        for (let c = 0; c < numonesonrws.length; c++)
-                        {
-                            if (0 < numonesonrws[c])
-                            {
-                                if (mxrwi < 0)
-                                {
-                                    mxrwi = c;
-                                    mxonesfndonrws = numonesonrws[c];
-                                }
-                                else
-                                {
-                                    if (mxonesfndonrws < numonesonrws[c])
-                                    {
-                                        mxrwi = c;
-                                        mxonesfndonrws = numonesonrws[c];
-                                    }
-                                    //else;//do nothing
-                                }
-                            }
-                            //else;//do nothing
-                        }//end of c for loop
-                        console.log("mxonesfndonrws = " + mxonesfndonrws);
-                        console.log("mxrwi = " + mxrwi);
-
-                        if (mxrwi < 0 || numonesonrws.length - 1 < mxrwi)
-                        {
-                            throw new Error("illegal index value found and used here for mxrwi!");
-                        }
-                        //else;//do nothing
-
-                        let mxonesfndoncls = -1;
-                        let mxcli = -1;
-                        for (let c = 0; c < numonesoncls.length; c++)
-                        {
-                            if (0 < numonesoncls[c])
-                            {
-                                if (mxcli < 0)
-                                {
-                                    mxcli = c;
-                                    mxonesfndoncls = numonesoncls[c];
-                                }
-                                else
-                                {
-                                    if (mxonesfndoncls < numonesoncls[c])
-                                    {
-                                        mxcli = c;
-                                        mxonesfndoncls = numonesoncls[c];
-                                    }
-                                    //else;//do nothing
-                                }
-                            }
-                            //else;//do nothing
-                        }//end of c for loop
-                        console.log("mxonesfndoncls = " + mxonesfndoncls);
-                        console.log("mxcli = " + mxcli);
-
-                        if (mxcli < 0 || numonesoncls.length - 1 < mxcli)
-                        {
-                            throw new Error("illegal index value found and used here for mxcli!");
-                        }
-                        //else;//do nothing
-
-                        if (mxonesfndonrws < mxonesfndoncls)
-                        {
-                            userow = false;
-                            mycl = mxcli;
-                        }
-                        else
-                        {
-                            userow = true;
-                            myrw = mxrwi;
-                        }
+                        let myuserwclobj = this.getUseRowAndColIndexsInfo(numonesonrws,
+                            numonesoncls, "mxonesfndon");
+                        userow = myuserwclobj.userow;
+                        myrw = myuserwclobj.myrw;
+                        mycl = myuserwclobj.mycl;
                     }
                     else
                     {
                         if (numundrtenfnd)
                         {
-                            let mxnumsundertenfndonrws = -1;
-                            let mxrwi = -1;
-                            for (let c = 0; c < numslessthantenonrws.length; c++)
-                            {
-                                if (0 < numslessthantenonrws[c])
-                                {
-                                    if (mxrwi < 0)
-                                    {
-                                        mxrwi = c;
-                                        mxnumsundertenfndonrws = numslessthantenonrws[c];
-                                    }
-                                    else
-                                    {
-                                        if (mxnumsundertenfndonrws < numslessthantenonrws[c])
-                                        {
-                                            mxrwi = c;
-                                            mxnumsundertenfndonrws = numslessthantenonrws[c];
-                                        }
-                                        //else;//do nothing
-                                    }
-                                }
-                                //else;//do nothing
-                            }//end of c for loop
-                            console.log("mxnumsundertenfndonrws = " + mxnumsundertenfndonrws);
-                            console.log("mxrwi = " + mxrwi);
-
-                            if (mxrwi < 0 || numslessthantenonrws.length - 1 < mxrwi)
-                            {
-                                throw new Error("illegal index value found and used here for mxrwi!");
-                            }
-                            //else;//do nothing
-
-                            let mxnumsundertenfndoncls = -1;
-                            let mxcli = -1;
-                            for (let c = 0; c < numslessthantenoncls.length; c++)
-                            {
-                                if (0 < numslessthantenoncls[c])
-                                {
-                                    if (mxcli < 0)
-                                    {
-                                        mxcli = c;
-                                        mxnumsundertenfndoncls = numslessthantenoncls[c];
-                                    }
-                                    else
-                                    {
-                                        if (mxnumsundertenfndoncls < numslessthantenoncls[c])
-                                        {
-                                            mxcli = c;
-                                            mxnumsundertenfndoncls = numslessthantenoncls[c];
-                                        }
-                                        //else;//do nothing
-                                    }
-                                }
-                                //else;//do nothing
-                            }//end of c for loop
-                            console.log("mxnumsundertenfndoncls = " + mxnumsundertenfndoncls);
-                            console.log("mxcli = " + mxcli);
-
-                            if (mxcli < 0 || numslessthantenoncls.length - 1 < mxcli)
-                            {
-                                throw new Error("illegal index value found and used here for mxcli!");
-                            }
-                            //else;//do nothing
-
-                            if (mxnumsundertenfndonrws < mxnumsundertenfndoncls)
-                            {
-                                userow = false;
-                                mycl = mxcli;
-                            }
-                            else
-                            {
-                                userow = true;
-                                myrw = mxrwi;
-                            }
+                            let myuserwclobj = this.getUseRowAndColIndexsInfo(numslessthantenonrws,
+                                numslessthantenoncls, "mxnumsundertenfndon");
+                            userow = myuserwclobj.userow;
+                            myrw = myuserwclobj.myrw;
+                            mycl = myuserwclobj.mycl;
                         }
                         else
                         {
@@ -1117,9 +1191,150 @@ class Matrices
         console.log(this.determinant(diagtst));//3*3*3=27
 
         this.testTranspose();
+        this.testMuliply();
+    }
+
+    //returns null when determinant is zero, but error will be printed out to the console
+    static inverse(m)
+    {
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(m)) throw new Error("matrix cannot be empty!");
+        else
+        {
+            let mydims = this.dimensions(m);
+            if (mydims.length === 1)
+            {
+                if (m.length === 1) return m;
+                //else;//do nothing
+            }
+            //else;//do nothing
+
+            let mydet = this.determinant(m);
+            if (mydet === 0)
+            {
+                console.error("this has no inverse, the determinant is zero. Therefore the " +
+                    "system has infinitely many solutions or no solution!");
+                return null;
+            }
+            //else;//do nothing safe to proceed
+
+            //dims are assumed to be length 2 from now on
+            
+            //if this is the same as the identity return it
+            let myidentitym = this.identity(mydims);
+            console.log("myidentitym = ", myidentitym);
+
+            let isidm = true;
+            for (let r = 0; r < m.length; r++)
+            {
+                for (let c = 0; c < m[r].length; c++)
+                {
+                    if (m[r][c] === myidentitym[r][c]);
+                    else
+                    {
+                        isidm = false;
+                        break;
+                    }
+                }
+                if (isidm);
+                else break;
+            }
+            console.log("isidm = " + isidm);
+
+            if (isidm) return m;
+            //else;//do nothing proceed below
+
+
+            //create a matrix of cofactors
+            //then transpose the matrix of cofactors
+            //then multiply that by 1/(determinant of the original matrix)
+            let mofcofactors = null;
+            if (mydims[0] === 2 && mydims[1] === 2) 
+            {
+                let nwb = ((m[0][1] === 0) ? 0 : (-1)*m[0][1]);
+                let nwc = ((m[1][0] === 0) ? 0 : (-1)*m[1][0]);
+                mofcofactors = [[m[1][1], nwb], [nwc, m[0][0]]];
+            }
+            else
+            {
+                mofcofactors = m.map((marr, rindx) => marr.map((val, cindx) => {
+                    let detminr = this.determinant(this.getMinor(m, rindx, cindx));
+                    if (detminr === 0) return 0;
+                    else return this.getSignOfCofactor(rindx, cindx) * detminr;
+                }));
+                mofcofactors = this.transpose(mofcofactors);
+            }
+            return this.doSomeOpOnAMatrix(mofcofactors, "/", mydet);
+        }
+    }
+    static testInverse()
+    {
+        this.testDeterminant();
+
+        console.log(this.inverse([1]));
         
-        //other tests
-        throw new Error("NOT DONE YET...!");
+        let myorigtwobytwo = [[-3, 4], [2, -1]];
+        console.log("myorigtwobytwo = ", myorigtwobytwo);
+
+        let myinvtwobytwo = this.inverse(myorigtwobytwo);
+        console.log("myinvtwobytwo = ", myinvtwobytwo);
+        //[[1/5 or 0.2, 2/5 or 0.4], [3/5 or 0.6, 4/5 or 0.8]]
+        console.log(this.inverse(myinvtwobytwo));
+        console.log("THE ABOVE SHOULD BE EQUAL TO: myorigtwobytwo = ", myorigtwobytwo);
+        
+        let myorigtbyt = [[1, 1, 1], [1, 2, 2], [2, 3, 4]];
+        console.log("myorigtbyt = ", myorigtbyt);
+
+        let myinvorigtbyt = this.inverse(myorigtbyt);//[2, -1, 0], [0, 2, -1], [-1, -1, 1]
+        console.log("myinvorigtbyt = ", myinvorigtbyt);
+        console.log(this.inverse(myinvorigtbyt));
+        console.log("ABOVE SHOULD BE EQUAL TO: myorigtbyt = ", myorigtbyt);
+
+        console.log(this.inverse(this.identity([3, 3])));//should be the same
+        //same for all diagnal matrices I think
+        
+        let diagtst = [[3, 0, 0], [0, 3, 0], [0, 0, 3]];
+        console.log("diagtst = ", diagtst);
+        console.log(this.isDiagnalMatrix(diagtst));
+        
+        let myinvdiagtest = this.inverse(diagtst);
+        console.log("myinvdiagtest = ", myinvdiagtest);
+
+        console.log(this.inverse(myinvdiagtest));
+        console.log("THE ABOVE SHOULD BE EQUAL TO: diagtst = ", diagtst);
+        
+        //throw new Error("NOT DONE YET...!");
+    }
+
+    static CramersRule(a, bans)
+    {
+        console.log("a = ", a);
+        console.log("bans = ", bans);
+
+        let mydet = this.determinant(a);
+        console.log("mydet = ", mydet);
+
+        if (mydet === 0)
+        {
+            console.error("this has no inverse, the determinant is zero. Therefore the " +
+                "system has infinitely many solutions or no solution!");
+            return null;
+        }
+        //else;//do nothing safe to proceed
+
+        //now to solve for x we need to substitute the answer matrix into each column
+        //then get that determinant and divide by main determinant for each x
+        return a[0].map((val, cindx) => {
+            let nwdet = this.determinant(this.replaceAColWith(a, bans, cindx));
+            let nwans = Math.round((nwdet / mydet) * 1000) / 1000;
+            console.log("ans[" + cindx + "] = " + nwans);
+            return nwans;
+        });
+    }
+    static testCramersRule()
+    {
+        console.log(this.CramersRule([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
+        console.log(this.CramersRule([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
     }
 }
 
