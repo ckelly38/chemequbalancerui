@@ -27,6 +27,7 @@ class Matrices
             return arrlens;
         }
     }
+
     static areCurrentArrayLengthsTheSame(arr)
     {
         let cc = new commonclass();
@@ -48,6 +49,7 @@ class Matrices
             return aremdimsthesame;
         }
     }
+
     static dimensions(m)
     {
         //let m = [[[], [], []],[[], [], []],[[], [], []]];
@@ -100,6 +102,7 @@ class Matrices
             else return null;
         }
     }
+
     static transpose(m, useobjsforlessthanthree=false)
     {
         //flip along dimensions....
@@ -119,24 +122,32 @@ class Matrices
 
             let nwm = null;
             let finuseobjinit = (useobjsforlessthanthree || !(dims.length < 3));
-            if (dims[0] === dims[1].length)
+            if (dims.length < 2)
             {
-                //square matrix
-                if (finuseobjinit) nwm = m.map((cval) => cval.map((val) => null));
-                else nwm = m.map((cval) => cval.map((val) => 0));
-                for (let r = 0; r < m.length; r++)
-                {
-                    for (let c = 0; c < m[r].length; c++) nwm[r][c] = m[c][r];
-                }
+                if (dims[0] === 1) return m;
+                else nwm = m.map((val) => [val]);//this is a 1D array like [1, 2, 3]
             }
             else
             {
-                //non-square matrix
-                if (finuseobjinit) nwm = m[0].map((cval) => m.map((val) => null));
-                else nwm = m[0].map((cval) => m.map((val) => 0));
-                for (let r = 0; r < m.length; r++)
+                if (dims[0] === dims[1])
                 {
-                    for (let c = 0; c < m[r].length; c++) nwm[c][r] = m[r][c];
+                    //square matrix
+                    if (finuseobjinit) nwm = m.map((cval) => cval.map((val) => null));
+                    else nwm = m.map((cval) => cval.map((val) => 0));
+                    for (let r = 0; r < m.length; r++)
+                    {
+                        for (let c = 0; c < m[r].length; c++) nwm[r][c] = m[c][r];
+                    }
+                }
+                else
+                {
+                    //non-square matrix
+                    if (finuseobjinit) nwm = m[0].map((cval) => m.map((val) => null));
+                    else nwm = m[0].map((cval) => m.map((val) => 0));
+                    for (let r = 0; r < m.length; r++)
+                    {
+                        for (let c = 0; c < m[r].length; c++) nwm[c][r] = m[r][c];
+                    }
                 }
             }
             return nwm;
@@ -173,6 +184,23 @@ class Matrices
         console.log(this.dimensions(mytmyom));
         console.log(this.transpose(mytmyom));
         console.log(this.determinant(myom));//0
+
+        let mynbytm = [1, 2, 3];
+        console.log("mynbytm = ", mynbytm);
+        console.log(this.dimensions(mynbytm));
+        console.log(this.determinant(mynbytm));//0
+
+        let mytnbytm = this.transpose(mynbytm);
+        console.log("mytnbytm = ", mytnbytm);
+        console.log(this.dimensions(mytnbytm));
+        console.log(this.determinant(mytnbytm));//0
+        console.log(this.transpose(mytnbytm));
+        console.log("ABOVE SHOULD BE THE SAME AS: mynbytm = ", mynbytm);
+
+        let mydummynum = [1];
+        console.log(this.transpose(mydummynum));//[1]
+        console.log(this.dimensions(mydummynum));//[1]
+        console.log(this.determinant(mydummynum));//1
 
         //this.testIdentity();
         //throw new Error("NEED TO CHECK THE RESULTS NOW!");
@@ -242,26 +270,10 @@ class Matrices
         let cc = new commonclass();
         if (cc.isLetEmptyNullOrUndefined(m)) return null;
         //else;//do nothing
-        let dims = this.dimensions(m);
-        if (dims.length < 2) return m;
-        //else;//do nothing
-
         //let myom = [[1, 2], [3, 4], [5, 6]];
-        //[1, 2]
-        //[3, 4]
-        //[5, 6]
-        if (userows) return m;
-        else
-        {
-            let mycols = [];
-            for (let c = 0; c < m[0].length; c++)
-            {
-                let mycol = [];
-                for (let r = 0; r < m.length; r++) mycol.push(m[r][c]);
-                mycols.push(mycol);
-            }
-            return mycols;
-        }
+        let dims = this.dimensions(m);
+        if (userows || dims.length < 2) return m;
+        else return m[0].map((val, cindx) => m.map((marr, rindx) => marr[cindx]));
     }
 
     static areTwoRowsOrColsTheSame(a, b, myrows)
@@ -286,6 +298,8 @@ class Matrices
 
         return isthisrowthesame;
     }
+
+    static mul(a, b) { return ((a === 0 || b === 0) ? 0 : a * b); }
 
     static doSomeOpOnAMatrix(m, opstr, num)
     {
@@ -327,8 +341,16 @@ class Matrices
                 if (dims.length === 1)
                 {
                     let nwm = m.map((val) => {
-                        if (opnum === 1) return (Math.round((val * num) * 10000) / 10000);
-                        else if (opnum === 2) return (Math.round((val / num) * 10000) / 10000);
+                        if (opnum === 1)
+                        {
+                            return this.mul(val, num);
+                            //return (Math.round(this.mul(val, num) * 10000) / 10000);
+                        }
+                        else if (opnum === 2)
+                        {
+                            return (val / num);
+                            //return (Math.round((val / num) * 10000) / 10000);
+                        }
                         else if (opnum === 3) return val + num;
                         else if (opnum === 4) return val - num;
                         else if (opnum === 5) return val % num;
@@ -340,8 +362,15 @@ class Matrices
                 else
                 {
                     let nwm = m.map((marr) => marr.map((val) => {
-                        if (opnum === 1) return (Math.round((val * num) * 10000) / 10000);
-                        else if (opnum === 2) return (Math.round((val / num) * 10000) / 10000);
+                        if (opnum === 1)
+                        {
+                            return this.mul(val, num);
+                            //return (Math.round(this.mul(val, num) * 10000) / 10000);
+                        }
+                        else if (opnum === 2)
+                        {
+                            return (val / num);//return (Math.round((val / num) * 10000) / 10000);
+                        }
                         else if (opnum === 3) return val + num;
                         else if (opnum === 4) return val - num;
                         else if (opnum === 5) return val % num;
@@ -452,7 +481,7 @@ class Matrices
                 //handle the scalar multiplication here
                 if (numrsa === 1 && numcsa === 1)
                 {
-                    if (numrsb === 1 && numcsb === 1) return [a[0] * b[0]];
+                    if (numrsb === 1 && numcsb === 1) return [this.mul(a[0], b[0])];
                     else return this.doSomeOpOnAMatrix(b, "*", a[0]);
                 }
                 else
@@ -498,10 +527,10 @@ class Matrices
                             {
                                 console.log("a[" + ra + "][" + rb + "] = " + a[ra][rb]);
                                 console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
-                                console.log("mulitplied = " + (a[ra][rb] * b[rb][cb]));
+                                console.log("mulitplied = " + this.mul(a[ra][rb], b[rb][cb]));
                                 console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                                 
-                                resm[ra][cb] += (a[ra][rb] * b[rb][cb]);
+                                resm[ra][cb] += this.mul(a[ra][rb], b[rb][cb]);
                                 console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             }//end of rb = ca
                         }
@@ -510,10 +539,10 @@ class Matrices
                             //dimsb.length is 1
                             console.log("a[" + ra + "][0] = " + a[ra][0]);
                             console.log("b[" + cb + "] = " + b[cb]);
-                            console.log("mulitplied = " + (a[ra][0] * b[cb]));
+                            console.log("mulitplied = " + this.mul(a[ra][0], b[cb]));
                             console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             
-                            resm[ra][cb] += (a[ra][0] * b[cb]);
+                            resm[ra][cb] += this.mul(a[ra][0], b[cb]);
                             console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                         }
                     }//end of cb
@@ -528,10 +557,10 @@ class Matrices
                     {
                         console.log("a[" + rb + "] = " + a[rb]);
                         console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
-                        console.log("mulitplied = " + (a[rb] * b[rb][cb]));
+                        console.log("mulitplied = " + this.mul(a[rb], b[rb][cb]));
                         console.log("OLD resm[" + cb + "] = " + resm[cb]);
                         
-                        resm[cb] += (a[rb] * b[rb][cb]);
+                        resm[cb] += this.mul(a[rb], b[rb][cb]);
                         console.log("NEW resm[" + cb + "] = " + resm[cb]);
                     }//end of rb = ca
                 }//end of cb
@@ -705,9 +734,9 @@ class Matrices
     //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
     static getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum)
     {
-        console.log("r = " + r);
-        console.log("num = " + num);
-        console.log("arr = ", arr);
+        //console.log("r = " + r);
+        //console.log("num = " + num);
+        //console.log("arr = ", arr);
         if (r < 0) throw new Error("r is not allowed to be negative!");
         //else;//do nothing
 
@@ -718,7 +747,7 @@ class Matrices
             let cnt = 0;
             for (let c = 0; c < arr[r].length; c++)
             {
-                console.log("arr[" + r + "][" + c + "] = " + arr[r][c]);
+                //console.log("arr[" + r + "][" + c + "] = " + arr[r][c]);
                 if (opnum === 1)
                 {
                     if (arr[r][c] === num) cnt++;
@@ -855,8 +884,8 @@ class Matrices
             }
             //else;//do nothing
         }//end of c for loop
-        console.log("mxnumfnd = " + mxnumfnd);
-        console.log("mxrorci = " + mxrorci);
+        //console.log("mxnumfnd = " + mxnumfnd);
+        //console.log("mxrorci = " + mxrorci);
 
         if (mxrorci < 0 || myarr.length - 1 < mxrorci)
         {
@@ -916,7 +945,7 @@ class Matrices
 
             if (dims.length < 3)
             {
-                if (dims.length === 1) return m[0];
+                if (dims.length === 1) return ((dims[0] === 1) ? m[0] : 0);
                 //else;//do nothing safe to proceed below
 
                 //is the matrix a square matrix, if so find it below return 0
@@ -927,7 +956,7 @@ class Matrices
                 {
                     //this is a 2 x 2 matrix determinant is: AD-BC
                     //[A, B][C, D]
-                    return (m[0][0] * m[1][1]) - (m[0][1] * m[1][0]);
+                    return this.mul(m[0][0], m[1][1]) - this.mul(m[0][1], m[1][0]);
                 }
                 //else proceed this is where it gets interesting
 
@@ -1106,8 +1135,8 @@ class Matrices
 
                     for (let c = 0; c < m[myrw].length; c++)
                     {
-                        let cfval = this.getSignOfCofactor(myrw, c) * m[myrw][c] *
-                            this.determinant(this.getMinor(m, myrw, c));
+                        let cfval = this.mul(this.mul(this.getSignOfCofactor(myrw, c), m[myrw][c]),
+                            this.determinant(this.getMinor(m, myrw, c)));
                         mydval += cfval;
                         console.log("cfval = " + cfval);
                         console.log("NEW mydval = " + mydval);
@@ -1120,8 +1149,8 @@ class Matrices
 
                     for (let r = 0; r < m.length; r++)
                     {
-                        let cfval = this.getSignOfCofactor(r, mycl) * m[r][mycl] *
-                            this.determinant(this.getMinor(m, r, mycl));
+                        let cfval = this.mul(this.mul(this.getSignOfCofactor(r, mycl), m[r][mycl]),
+                            this.determinant(this.getMinor(m, r, mycl)));
                         mydval += cfval;
                         console.log("cfval = " + cfval);
                         console.log("NEW mydval = " + mydval);
@@ -1251,16 +1280,15 @@ class Matrices
             let mofcofactors = null;
             if (mydims[0] === 2 && mydims[1] === 2) 
             {
-                let nwb = ((m[0][1] === 0) ? 0 : (-1)*m[0][1]);
-                let nwc = ((m[1][0] === 0) ? 0 : (-1)*m[1][0]);
+                let nwb = ((m[0][1] === 0) ? 0 : this.mul(-1, m[0][1]));
+                let nwc = ((m[1][0] === 0) ? 0 : this.mul(-1, m[1][0]));
                 mofcofactors = [[m[1][1], nwb], [nwc, m[0][0]]];
             }
             else
             {
                 mofcofactors = m.map((marr, rindx) => marr.map((val, cindx) => {
                     let detminr = this.determinant(this.getMinor(m, rindx, cindx));
-                    if (detminr === 0) return 0;
-                    else return this.getSignOfCofactor(rindx, cindx) * detminr;
+                    return this.mul(this.getSignOfCofactor(rindx, cindx), detminr);
                 }));
                 mofcofactors = this.transpose(mofcofactors);
             }
@@ -1306,6 +1334,228 @@ class Matrices
         //throw new Error("NOT DONE YET...!");
     }
 
+    static SolveViaMatrixInverse(a, bans)
+    {
+        //ax=b -> x=b/a=(a^(-1))*b -> 1/a=a^(-1)=a_inverse a*(a^(-1)) = IDENTITY -> IDENTITY * x = x
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(a, "a");
+        cc.letMustNotBeEmpty(bans, "bans");
+        let myres = this.multiply(this.inverse(a), bans);
+        console.log("MYRES_AX=B = ", myres);
+
+        let myfracs = myres.map((val) => this.toFrac(val));
+        console.log("myfracs = ", myfracs);
+
+        //take all denominators get their GCFs
+        //then multiply by them to get integers
+        //then return
+        //if the GCF of all denominators is 1, then just multiply them all together
+        //that will be the LCM. Then multiply all numerators by it.
+        let mynumrs = [];
+        let mydenoms = [];
+        myfracs.forEach((val) => {
+            mynumrs.push(val[0]);
+            mydenoms.push(val[1]);
+        });
+        let mylcd = this.mainLCM(mydenoms);
+        console.log("mylcd = " + mylcd);
+
+        let myints = mynumrs.map((val, indx) => ((mylcd / mydenoms[indx]) * val));
+        console.log("myints = " + myints);
+
+        return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
+    }
+    static testSolveViaInverse()
+    {
+        //hangs the browser on toFrac
+        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
+        console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
+        throw new Error("NOT DONE YET...!");
+    }
+
+    static gcf(a, b)
+    {
+        //https://www.cuemath.com/numbers/gcf-greatest-common-factor/
+        //console.log("GCF OF a = " + a + " AND b = " + b + ":");
+        if (b === a) return a;
+        else if (a === 0 || b === 0) return 0;
+        else if (a === 1 || b === 1) return 1;
+        else
+        {
+            if (a < b)
+            {
+                let rem = b % a;
+                return ((rem === 0) ? a : this.gcf(a, rem));//rem is not zero //a % rem
+            }
+            else return this.gcf(b, a);
+        }
+    }
+    static mainGCF(arr)
+    {
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(arr, "arr");
+
+        //remove the duplicates...
+        let mynwarr = [];
+        for (let n = 0; n < arr.length; n++)
+        {
+            let addit = true;
+            for (let k = 0; k < mynwarr.length; k++)
+            {
+                if (mynwarr[k] === arr[n])
+                {
+                    addit = false;
+                    break;
+                }
+                //else;//do nothing
+            }
+            if (addit) mynwarr.push(arr[n]);
+            //else;//do nothing
+        }
+        //console.log("CALLED mainGCF with mynwarr = ", mynwarr);
+
+        if (mynwarr.length === 1) return mynwarr[0];
+        else
+        {
+            let mygcfval = this.gcf(mynwarr[0], mynwarr[1]);
+            if (mynwarr.length === 2) return mygcfval;
+            //else;//do nothing proceed below
+
+            //length is at least 3
+            //get the gcf of the first two
+            //then use that gcf and the next number and so on...
+            //use the new array here
+            //the recursion can stop if GCF IS 1 because it will not be any bigger.
+            //provided that these numbers are not the same
+            if (mygcfval === 0) return 0;
+            else if (mygcfval === 1) return 1;
+            else return this.mainGCF([mygcfval, ...mynwarr.filter((val, indx) => (1 < indx))]);
+        }
+    }
+    static testGCF()
+    {
+        console.log("THE GCF OF 60 AND 60 IS: " + this.gcf(60, 60));//60
+        console.log("THE GCF OF 30 AND 42 IS: " + this.gcf(30, 42));//6
+        console.log("THE GCF OF 18 AND 27 IS: " + this.gcf(18, 27));//9
+        console.log("THE GCF OF 60 AND 90 IS: " + this.gcf(60, 90));//30
+        console.log("THE GCF OF 360 AND 198 IS: " + this.gcf(360, 198));//18
+        console.log("THE GCF OF 198 AND 360 IS: " + this.gcf(198, 360));//18
+        console.log("THE GCF OF 0 AND 4 IS: " + this.gcf(0, 4));//0
+        console.log("THE GCF OF 4 AND 0 IS: " + this.gcf(4, 0));//0
+        
+        let myarr = [4, 2, 4];
+        console.log("THE GCF OF " + myarr + " IS: " + this.mainGCF(myarr));
+        
+        let myoarr = [2, 3, 5];
+        console.log("THE GCF OF " + myoarr + " IS: " + this.mainGCF(myoarr));
+
+        let mybarr = [126, 162, 180];//18
+        console.log("THE GCF OF " + mybarr + " IS: " + this.mainGCF(mybarr));
+    }
+
+    static lcm(a, b)
+    {
+        if (a === 0 || b === 0) return 0;
+        else if (a === 1) return b;
+        else if (b === 1) return a;
+        else return ((a / this.gcf(a, b)) * b);
+    }
+    static mainLCM(arr)
+    {
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(arr, "arr");
+
+        //remove the duplicates...
+        let mynwarr = [];
+        for (let n = 0; n < arr.length; n++)
+        {
+            let addit = true;
+            for (let k = 0; k < mynwarr.length; k++)
+            {
+                if (mynwarr[k] === arr[n])
+                {
+                    addit = false;
+                    break;
+                }
+                //else;//do nothing
+            }
+            if (addit) mynwarr.push(arr[n]);
+            //else;//do nothing
+        }
+        //console.log("CALLED mainLCM with mynwarr = ", mynwarr);
+
+        if (mynwarr.length === 1) return mynwarr[0];
+        else
+        {
+            let mylcmval = this.lcm(mynwarr[0], mynwarr[1]);
+            if (mynwarr.length === 2) return mylcmval;
+            //else;//do nothing proceed below
+
+            //length is at least 3
+            //get the gcf of the first two
+            //then use that gcf and the next number and so on...
+            //use the new array here
+            //the recursion can stop if GCF IS 1 because it will not be any bigger.
+            //provided that these numbers are not the same
+            if (mylcmval === 0) return 0;
+            else return this.mainLCM([mylcmval, ...mynwarr.filter((val, indx) => (1 < indx))]);
+        }
+    }
+    static testLCM()
+    {
+        console.log("THE LCM OF 60 AND 60 IS: " + this.lcm(60, 60));//60
+        console.log("THE LCM OF 30 AND 42 IS: " + this.lcm(30, 42));//210
+        console.log("THE LCM OF 18 AND 27 IS: " + this.lcm(18, 27));//54
+        console.log("THE LCM OF 60 AND 90 IS: " + this.lcm(60, 90));//180
+        console.log("THE LCM OF 360 AND 198 IS: " + this.lcm(360, 198));//3960
+        console.log("THE LCM OF 198 AND 360 IS: " + this.lcm(198, 360));//3960
+        console.log("THE LCM OF 0 AND 4 IS: " + this.lcm(0, 4));//0
+        console.log("THE LCM OF 4 AND 0 IS: " + this.lcm(4, 0));//0
+        
+        let myarr = [4, 2, 4];//4
+        console.log("THE LCM OF " + myarr + " IS: " + this.mainLCM(myarr));
+        
+        let myoarr = [2, 3, 5];//30
+        console.log("THE LCM OF " + myoarr + " IS: " + this.mainLCM(myoarr));
+
+        let mybarr = [126, 162, 180];//11340
+        console.log("THE LCM OF " + mybarr + " IS: " + this.mainLCM(mybarr));
+    }
+
+    //https://stackoverflow.com/questions/23575218/convert-decimal-number-to-fraction-in-javascript-or-closest-fraction
+    //https://stackoverflow.com/questions/14002113/how-to-simplify-a-decimal-into-the-smallest-possible-fraction
+    //returns null in the event of failing to get what we need
+    static toFrac(num) {
+        let i = 1;
+        let retnum = 0;
+        while (true) {
+            if (num * i % 1 === 0) {
+                retnum = num * i;
+                break;
+            }
+            // For exceptions, tuned down MAX value a bit
+            if (i > 9000000000000000) return null;//throw new Error("cannot convert to fraction!");
+            //else;//do nothing
+            i++;
+        }
+        return [retnum, i];
+    }
+    static testToFraction()
+    {
+        console.log(this.toFrac(0.25));//1/4 or 1, 4
+        console.log(this.toFrac(0.5));//1/2 or 1, 2
+        console.log(this.toFrac(0.75));//3/4 or 3, 4
+        console.log(this.toFrac(0));//0/1 or 0, 1 or just 0
+        console.log(this.toFrac(0.125));//1/8 or 1, 8
+        console.log(this.toFrac(0.375));//3/8 or 3, 8
+        console.log(this.toFrac(0.3));//3/10
+        console.log(this.toFrac(1.0/3.0));//1/3
+        console.log(this.toFrac(0.175));//7/40
+        console.log(this.toFrac(2.175));//87/40
+        //console.log(this.toFrac(Math.round((0.1+0.2) * 1000) / 1000));//3/10
+        //throw new Error("NOT DONE YET!");
+    }
+
     static CramersRule(a, bans)
     {
         console.log("a = ", a);
@@ -1324,12 +1574,27 @@ class Matrices
 
         //now to solve for x we need to substitute the answer matrix into each column
         //then get that determinant and divide by main determinant for each x
-        return a[0].map((val, cindx) => {
+        let mynumerators = a[0].map((val) => 0);
+        let myans = a[0].map((val, cindx) => {
             let nwdet = this.determinant(this.replaceAColWith(a, bans, cindx));
             let nwans = Math.round((nwdet / mydet) * 1000) / 1000;
+            mynumerators[cindx] = nwdet;
             console.log("ans[" + cindx + "] = " + nwans);
             return nwans;
         });
+        //need to reduce the numerator by the GCF of the DENOMINATOR
+        //2/4 -> 1/2, 4/4 -> 1/1
+        //we can keep all of the numerators only (we multiplied by the denominator)
+        //but then we need to divide by the GCF
+        //OR WE CAN REDUCE ALL OF THE FRACTIONS AND MULTIPLY BY THE LCM
+        //THE LCM BEING ALL OF THE REDUCED DENOMINATORS MULTIPLIED TOGETHER
+        console.log("mynumerators = ", mynumerators);
+
+        let mymngcf = this.mainGCF(mynumerators);
+        let mynewnums = mynumerators.map((val) => val /= mymngcf);
+        console.log("mynewnums = ", mynewnums);
+
+        return {"ans": myans, "myintans": mynewnums, "mydet": mydet, "mynumerators": mynumerators};
     }
     static testCramersRule()
     {

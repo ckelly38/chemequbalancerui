@@ -31,6 +31,10 @@ function App() {
   //Matrices.testDeterminant();
   Matrices.testInverse();
   Matrices.testCramersRule();
+  Matrices.testGCF();
+  Matrices.testLCM();
+  Matrices.testToFraction();
+  Matrices.testSolveViaInverse();
   
   function getMaxReactantOrProductsNum(myarr, usereactants)
   {
