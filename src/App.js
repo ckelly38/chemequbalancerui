@@ -26,15 +26,21 @@ function App() {
   let [areallequsbalanced, setAllEqusBalanced] = useState(true);
   let [balerrfnd, setBalErrorFound] = useState(false);
   const cc = new commonclass();
-
-  //Matrices.testTranspose();
-  //Matrices.testDeterminant();
-  Matrices.testInverse();
-  Matrices.testCramersRule();
-  Matrices.testGCF();
-  Matrices.testLCM();
-  Matrices.testToFraction();
-  Matrices.testSolveViaInverse();
+  
+  let runmtests = false;
+  if (runmtests)
+  {
+    //Matrices.testTranspose();//handled in testDeterminant
+    Matrices.testDeterminant();
+    Matrices.testInverse();
+    Matrices.testCramersRule();
+    Matrices.testGCF();
+    Matrices.testLCM();
+    Matrices.testToFraction();
+    Matrices.testSolveViaInverse();
+  }
+  //else;//do nothing
+  
   
   function getMaxReactantOrProductsNum(myarr, usereactants)
   {
@@ -509,6 +515,121 @@ function App() {
     return mydatarwsontble;
   }
 
+  function genMatrixAndAnsMatrix(mydatrws)
+  {
+    console.log("mydatrws = ", mydatrws);
+    cc.letMustNotBeEmpty(mydatrws, "mydatrws");
+
+    //filter out the elements and anything after the equals stick a - infront of it
+    //if it already has a minus, then remove it
+    //then convert to numbers maybe?
+    //we also need to add a row to it with 1 and then the rest are zeros
+    //this will be our initial matrix
+    //our answer matrix will be a r x 1 col array of all zeros with a 1 after it
+    
+    let myequri = -1;
+    let mynwstrm = mydatrws.map((crwarr, rindx) => {
+      let mynwarr = [];
+      crwarr.forEach((val, cindx) => {
+        if (cindx === 0);
+        else
+        {
+          if (val === "=") myequri = cindx;
+          else
+          {
+            if (myequri < 0) mynwarr.push(val);
+            else
+            {
+              if (myequri < cindx)
+              {
+                mynwarr.push((val.charAt(0) === '-') ? val.substring(1) : "-" + val);
+              }
+              else throw new Error("case should have already been handled!");
+            }
+          }
+        }
+      });
+      return mynwarr;
+    });
+    let myansstrm = mynwstrm.map((val) => ["0"]);
+    mynwstrm.push(mynwstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
+    myansstrm.push(["1"]);
+    console.log("mynwstrm = ", mynwstrm);
+    console.log("myansstrm = ", myansstrm);
+
+    let mynumm = mynwstrm.map((rwarr) => rwarr.map((val) => Number(val)));
+    let mynumansm = myansstrm.map((rwarr) => rwarr.map((val) => Number(val)));
+    console.log("mynumm = ", mynumm);
+    console.log("mynumansm = ", mynumansm);
+
+    return {"mynumstringmatrix": mynwstrm, "myanswerstringmatrix": myansstrm,
+      "mynummatrix": mynumm, "myanswernummatrix": mynumansm};
+  }
+
+  function solveTheSystem(matrixobj, useminv=false)
+  {
+    cc.letMustBeBoolean(useminv, "useminv");
+    cc.letMustBeDefinedAndNotNull(matrixobj, "matrixobj");
+    
+    let usestrs = false;//actually dictated by if fractions are stored or numbers directly
+    let a = (usestrs ? matrixobj.mynumstringmatrix : matrixobj.mynummatrix);
+    let b = (usestrs ? matrixobj.myanswerstringmatrix : matrixobj.myanswernummatrix);
+    let myresobj = (useminv ? Matrices.SolveViaMatrixInverse(a, b) : Matrices.CramersRule(a, b));
+    console.log("myresobj = ", myresobj);
+    console.log("mylcs = ", mylcs);
+    //return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
+    //return {"ans": myans, "myintans": mynewnums, "mydet": mydet, "mynumerators": mynumerators};
+    //cramers rule has mydet key (whatever it returns a number), minv has mydenoms (array) key
+    //but the only thing we are actually interested in is myintans
+    //as this holds what the lcs need to be
+
+    //take this and set the LCS with the results
+    //myresobj.myintans
+    //mylcs, setMyLCs
+    //the results are in order of the reactants then the products
+    //so if we can determine what order the lcs are currently in, we can set them
+    //if I know how many are in the reactants and how many are in the products,
+    //then I can split the array and set them more or less
+    let numrs = 0;
+    let numps = 0;
+    let rlcobjs = [];
+    let plcobjs = [];
+    mylcs.forEach((lcobj) => {
+      if (lcobj.isreactant)
+      {
+        numrs++;
+        rlcobjs.push(lcobj);
+      }
+      else
+      {
+        numps++;
+        plcobjs.push(lcobj);
+      }
+    });
+    console.log("numrs = " + numrs);
+    console.log("numps = " + numps);
+    console.log("rlcobjs = ", rlcobjs);
+    console.log("plcobjs = ", plcobjs);
+    
+    if (numrs + numps === mylcs.length && mylcs.length === myresobj.myintans.length);
+    else throw new Error("illegal number of lcs or answers found!");
+
+    //the lcs can now be mapped and set
+    let mynwlcs = rlcobjs.map((robj) => {
+      let mynwrobj = {...robj};
+      mynwrobj.lcval = myresobj.myintans[robj.num - 1];
+      return mynwrobj;
+    });
+    plcobjs.forEach((pobj) => {
+      let mynwpobj = {...pobj};
+      mynwpobj.lcval = myresobj.myintans[numrs + pobj.num - 1];
+      mynwlcs.push(mynwpobj);
+    });
+    console.log("mynwlcs = ", mynwlcs);
+
+    setMyLCs(mynwlcs);
+  }
+
   function getElementAndBaseStartAndEndIndexes(hnames)
   {
     cc.letMustNotBeEmpty(hnames, "hnames");
@@ -800,8 +921,6 @@ function App() {
     let addifbaseisone = false;//user preference includes the base if base is 1
     const hnames = getHeaderNamesForEquTable(reactantsbynum, productsbynum, mxrnum, mxpnum,
       addifbaseisone);
-    const myhrw = (<tr key="equtablehdrrw" style={{border: "1px solid black"}}>{hnames.map((nm) =>
-      <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
     
     //get the list of unique elements now
     const myelems = getUniqueElementNamesOnlyArray(myarr);
@@ -822,6 +941,9 @@ function App() {
     //console.log("myeleis = ", myeleis);
     //console.log("mybasis = ", mybasis);
     //console.log("mybaeis = ", mybaeis);
+
+    const myhrw = (<tr key="equtablehdrrw" style={{border: "1px solid black"}}>{hnames.map((nm) =>
+      <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
 
     //generate the data rows here...
     let inconetimes = false;//in the equations include 1 * lcnum if the base is 1
@@ -970,6 +1092,8 @@ function App() {
   console.log("areallequsbalanced = " + areallequsbalanced);
   console.log("balerrfnd = " + balerrfnd);
   
+  let useminv = false;
+  let mydatrws = null;
   return (<div>
       <h1>Chem Equation Balancer APP</h1>
       <div>{genControlButtons(myelembasearr, true)}
@@ -978,7 +1102,8 @@ function App() {
         <button style={{marginLeft: "10px"}} onClick={(event) => setLockedBases(!lockedbases)}>
           {lockedbases ? "un": ""}lock bases!</button>
         {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
-          (<button onClick={null}>Solve It!</button>))}
+          (<button onClick={(event) => solveTheSystem(genMatrixAndAnsMatrix(mydatrws), useminv)}>
+            Solve It!</button>))}
       </div>
       <div id="equ" style={{display: "inline-block"}}>
         {genReactantsOrProductsDivs(myelembasearr, true)}

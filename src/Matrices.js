@@ -1368,7 +1368,7 @@ class Matrices
     static testSolveViaInverse()
     {
         //hangs the browser on toFrac
-        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
+        //console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
         console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
         throw new Error("NOT DONE YET...!");
     }
@@ -1498,7 +1498,11 @@ class Matrices
             //the recursion can stop if GCF IS 1 because it will not be any bigger.
             //provided that these numbers are not the same
             if (mylcmval === 0) return 0;
-            else return this.mainLCM([mylcmval, ...mynwarr.filter((val, indx) => (1 < indx))]);
+            else
+            {
+                let myfilarr = mynwarr.filter((val, indx) => (1 < indx));
+                return this.mainLCM(((mylcmval === 1) ? myfilarr : [mylcmval, ...myfilarr]));
+            }
         }
     }
     static testLCM()
