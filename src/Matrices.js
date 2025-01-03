@@ -103,11 +103,12 @@ class Matrices
         }
     }
 
-    static transpose(m, useobjsforlessthanthree=false)
+    static transpose(m, usenums=false, useobjsforlessthanthree=false)
     {
         //flip along dimensions....
         let cc = new commonclass();
         cc.letMustBeBoolean(useobjsforlessthanthree, "useobjsforlessthanthree");
+        cc.letMustBeBoolean(usenums, "usenums");
         if (cc.isLetEmptyNullOrUndefined(m)) return null;
         else
         {
@@ -133,7 +134,7 @@ class Matrices
                 {
                     //square matrix
                     if (finuseobjinit) nwm = m.map((cval) => cval.map((val) => null));
-                    else nwm = m.map((cval) => cval.map((val) => 0));
+                    else nwm = m.map((cval) => cval.map((val) => (usenums ? 0 : "0")));
                     for (let r = 0; r < m.length; r++)
                     {
                         for (let c = 0; c < m[r].length; c++) nwm[r][c] = m[c][r];
@@ -143,7 +144,7 @@ class Matrices
                 {
                     //non-square matrix
                     if (finuseobjinit) nwm = m[0].map((cval) => m.map((val) => null));
-                    else nwm = m[0].map((cval) => m.map((val) => 0));
+                    else nwm = m[0].map((cval) => m.map((val) => (usenums ? 0 : "0")));
                     for (let r = 0; r < m.length; r++)
                     {
                         for (let c = 0; c < m[r].length; c++) nwm[c][r] = m[r][c];
@@ -153,8 +154,21 @@ class Matrices
             return nwm;
         }
     }
+    static transposeNumsOrFractions(m, usenums, useobjsforlessthanthree=false)
+    {
+        return this.transpose(m, usenums, useobjsforlessthanthree);
+    }
+    static transposeNums(m, useobjsforlessthanthree=false)
+    {
+        return this.transposeNumsOrFractions(m, true, useobjsforlessthanthree);
+    }
+    static transposeFractions(m, useobjsforlessthanthree=false)
+    {
+        return this.transposeNumsOrFractions(m, false, useobjsforlessthanthree);
+    }
     static testTranspose()
     {
+        let usenums = true;
         let mysqr = [];
         let cntr = 1;
         for (let n = 0; n < 3; n++)
@@ -169,7 +183,7 @@ class Matrices
         }
         console.log("mysqr = ", mysqr);
         console.log(this.dimensions(mysqr));
-        console.log(this.transpose(mysqr));
+        console.log(this.transposeNumsOrFractions(mysqr, usenums));
         console.log(this.identity([3, 3]));
         console.log(this.determinant(mysqr));//0
 
@@ -182,7 +196,7 @@ class Matrices
         let mytmyom = this.transpose(myom);
         console.log("mytmyom = ", mytmyom);
         console.log(this.dimensions(mytmyom));
-        console.log(this.transpose(mytmyom));
+        console.log(this.transposeNumsOrFractions(mytmyom, usenums));
         console.log(this.determinant(myom));//0
 
         let mynbytm = [1, 2, 3];
@@ -190,20 +204,24 @@ class Matrices
         console.log(this.dimensions(mynbytm));
         console.log(this.determinant(mynbytm));//0
 
-        let mytnbytm = this.transpose(mynbytm);
+        let mytnbytm = this.transposeNumsOrFractions(mynbytm, usenums);
         console.log("mytnbytm = ", mytnbytm);
         console.log(this.dimensions(mytnbytm));
         console.log(this.determinant(mytnbytm));//0
-        console.log(this.transpose(mytnbytm));
+        console.log(this.transposeNumsOrFractions(mytnbytm, usenums));
         console.log("ABOVE SHOULD BE THE SAME AS: mynbytm = ", mynbytm);
 
         let mydummynum = [1];
-        console.log(this.transpose(mydummynum));//[1]
+        console.log(this.transposeNumsOrFractions(mydummynum, usenums));//[1]
         console.log(this.dimensions(mydummynum));//[1]
         console.log(this.determinant(mydummynum));//1
 
+        let dimsstrmtst = [["1", "2"], ["3", "4"], ["5", "6"]];
+        console.log("dimsstrmtst = ", dimsstrmtst);
+        console.log(this.dimensions(dimsstrmtst));
+
         //this.testIdentity();
-        //throw new Error("NEED TO CHECK THE RESULTS NOW!");
+        throw new Error("NEED TO CHECK THE RESULTS NOW!");
     }
 
     static identity(dimsarr)
@@ -300,9 +318,199 @@ class Matrices
     }
 
     static mul(a, b) { return ((a === 0 || b === 0) ? 0 : a * b); }
-
-    static doSomeOpOnAMatrix(m, opstr, num)
+    //returns null if the fraction f is null otherwise returns a numerator, denominator in an array
+    static getNumeratorAndDenominatorFromFraction(f)
     {
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(f)) return null;
+        else
+        {
+            let mydelimi = f.indexOf("/");
+            if (mydelimi < 0 || f.length - 1 < mydelimi) return [Number(f), 1];
+            else return f.split("/").map((val) => Number(val));
+        }
+    }
+    static getNumerator(f) {
+        let cc = new commonclass();
+        let mynumdarr = this.getNumeratorAndDenominatorFromFraction(f);
+        cc.letMustNotBeEmpty(mynumdarr, "mynumdarr");
+        return mynumdarr[0];
+    }
+    static getDenominator(f) {
+        let cc = new commonclass();
+        let mynumdarr = this.getNumeratorAndDenominatorFromFraction(f);
+        cc.letMustNotBeEmpty(mynumdarr, "mynumdarr");
+        return mynumdarr[1];
+    }
+    static convertFractionToDecimal(f)
+    {
+        let cc = new commonclass();
+        let mynumdarr = this.getNumeratorAndDenominatorFromFraction(f);
+        cc.letMustNotBeEmpty(mynumdarr, "mynumdarr");
+        return mynumdarr[0] / mynumdarr[1];
+    }
+    static multiplyTwoFractions(a, b)
+    {
+        let cc = new commonclass();
+        if (cc.isLetEmptyNullOrUndefined(a))
+        {
+            if (cc.isLetEmptyNullOrUndefined(b)) return null;
+            else return b;
+        }
+        else
+        {
+            if (cc.isLetEmptyNullOrUndefined(b)) return a;
+            else
+            {
+                let mynumda = this.getNumeratorAndDenominatorFromFraction(a);
+                let mynumdb = this.getNumeratorAndDenominatorFromFraction(b);
+                let mynwnumr = this.mul(mynumda[0], mynumdb[0]);
+                let mynwdenom = this.mul(mynumda[1], mynumdb[1]);
+                if (mynwdenom === 0) throw new Error("cannot divide by zero!");
+                else if (mynwdenom === 1) return "" + mynwnumr;
+                else if (mynwdenom === -1) return "" + this.mul(-1, mynwnumr);
+                else return "" + mynwnumr + "/" + mynwdenom;
+            }
+        }
+    }
+
+    static doSomeOpOnValByNum(val, num, opnum, valusenums, numisnum)
+    {
+        let cc = new commonclass();
+        cc.letMustBeBoolean(valusenums, "valusenums");
+        cc.letMustBeBoolean(numisnum, "numisnum");
+
+        if (opnum === 1)
+        {
+            if (valusenums === numisnum)
+            {
+                if (numisnum)
+                {
+                    return this.mul(val, num);
+                    //return (Math.round(this.mul(val, num) * 10000) / 10000);
+                }
+                else return this.multiplyTwoFractions(val, num);//both fractions call that
+            }
+            else
+            {
+                //one is a fraction, the other is not
+                //convert the one to a fraction then multiply the two fractions
+                //NOT SURE IF THIS IS WHAT I WANT HERE...
+                return this.multiplyTwoFractions((numisnum ? val : "" + val),
+                    (numisnum ? "" + num : num));
+            }
+        }
+        else if (opnum === 2)
+        {
+            if (valusenums === numisnum)
+            {
+                if (numisnum)
+                {
+                    return (val / num);
+                    //return (Math.round((val / num) * 10000) / 10000);
+                }
+                else
+                {
+                    //both are fractions...
+                    //we want to multiply val by 1 over num
+                    //to do this we actually want to flip num's numerator and denominators
+                    let mynumdenomarr = this.getNumeratorAndDenominatorFromFraction(num);
+                    return this.multiplyTwoFractions(val,
+                        "" + mynumdenomarr[0] + "/" + mynumdenomarr[1]);
+                }
+            }
+            else
+            {
+                //one is a fraction and the other is not...
+                //convert the one to a fraction then multiply the two fractions
+                let mynwfr = (numisnum ? "" + num : num);
+                let mynumdenomarr = this.getNumeratorAndDenominatorFromFraction(mynwfr);
+                return this.multiplyTwoFractions((numisnum ? val : "" + val),
+                    "" + mynumdenomarr[0] + "/" + mynumdenomarr[1]);
+            }
+        }
+        else if (opnum === 3 || opnum === 4)
+        {
+            if (valusenums === numisnum)
+            {
+                if (numisnum)
+                {
+                    if (opnum === 3) return val + num;
+                    else return val - num;
+                }
+                else
+                {
+                    //we have two fractions
+                    //we cannot directly just add them first we need a common denominator
+                    //get the LCM of them
+                    //A/B +or- C/D get LCM of B AND D, this is the denominator in the final answer
+                    //then need the new numerators before we do the operation
+                    let mynumdenomarra = this.getNumeratorAndDenominatorFromFraction(val);
+                    let mynumdenomarrb = this.getNumeratorAndDenominatorFromFraction(num);
+                    let mylcm = this.lcm(mynumdenomarra[1], mynumdenomarrb[1]);
+                    if (mylcm === 0) throw new Error("cannot divide by zero!");
+                    else
+                    {
+                        let nwnuma = (mylcm / mynumdenomarra[1]) * mynumdenomarra[0];
+                        let nwnumb = (mylcm / mynumdenomarrb[1]) * mynumdenomarrb[0];
+                        let finnum = ((opnum === 3) ? nwnuma + nwnumb : nwnuma - nwnumb);
+                        return ((mylcm === 1) ? "" + finnum : "" + finnum + "/" + mylcm);
+                    }
+                }
+            }
+            else
+            {
+                //must conver the one that is not a fraction to a fraction before we can begin
+                //then we repeat above
+                let nwnum = (numisnum ? "" + num : num);
+                let nwval = (valusenums ? "" + val : val);
+                let mynumdenomarra = this.getNumeratorAndDenominatorFromFraction(nwval);
+                let mynumdenomarrb = this.getNumeratorAndDenominatorFromFraction(nwnum);
+                let mylcm = this.lcm(mynumdenomarra[1], mynumdenomarrb[1]);
+                if (mylcm === 0) throw new Error("cannot divide by zero!");
+                else
+                {
+                    let nwnuma = (mylcm / mynumdenomarra[1]) * mynumdenomarra[0];
+                    let nwnumb = (mylcm / mynumdenomarrb[1]) * mynumdenomarrb[0];
+                    let finnum = ((opnum === 3) ? nwnuma + nwnumb : nwnuma - nwnumb);
+                    return ((mylcm === 1) ? "" + finnum : "" + finnum + "/" + mylcm);
+                }
+            }
+        }
+        else if (opnum === 5 || opnum === 6)
+        {
+            //convert these both to decimals
+            if (valusenums === numisnum)
+            {
+                if (numisnum) return ((opnum === 5) ? val % num : Math.pow(val, num));
+                else
+                {
+                    //both are fractions
+                    let mydecnuma = this.convertFractionToDecimal(val);
+                    let mydecnumb = this.convertFractionToDecimal(num);
+                    return ((opnum === 5) ? (mydecnuma % mydecnumb) : Math.pow(mydecnuma, mydecnumb));
+                }
+            }
+            else
+            {
+                //one is a fraction and one is a decimal
+                let mynwval = (valusenums ? val : this.convertFractionToDecimal(val));
+                let mynwnum = (numisnum ? num : this.convertFractionToDecimal(num));
+                return ((opnum === 5) ? (mynwval % mynwnum) : Math.pow(mynwval, mynwnum));
+            }
+        }
+        else throw new Error("illegal operation string found!");
+    }
+
+    //NOTE: if the matrix stores fractions, but num is a decimal,
+    //mixing these can have undesired consequences
+    static doSomeOpOnAMatrix(m, opstr, num, usenums, numisnum)
+    {
+        let cc = new commonclass();
+        cc.letMustBeBoolean(numisnum, "numisnum");
+        cc.letMustBeBoolean(usenums, "usenums");
+        cc.letMustNotBeEmpty(opstr, "opstr");
+
         let opnum = -1;
         if (opstr === "*") opnum = 1;
         else if (opstr === "/") opnum = 2;
@@ -311,15 +519,17 @@ class Matrices
         else if (opstr === "%") opnum = 5;
         else if (opstr === "^") opnum = 6;
         else throw new Error("illegal operation string found!");
-
+        
         if (opnum === 2 || opnum === 5)
         {
-            if (num === 0) throw new Error("cannot divide by zero!");
+            if ((numisnum && num === 0) || (!numisnum && num === "0"))
+            {
+                throw new Error("cannot divide by zero!");
+            }
             //else;//do nothing
         }
         //else;//do nothing
 
-        let cc = new commonclass();
         if (cc.isLetEmptyNullOrUndefined(m)) return null;
         //else;//do nothing
 
@@ -340,44 +550,12 @@ class Matrices
                 //can be closer to being accurate
                 if (dims.length === 1)
                 {
-                    let nwm = m.map((val) => {
-                        if (opnum === 1)
-                        {
-                            return this.mul(val, num);
-                            //return (Math.round(this.mul(val, num) * 10000) / 10000);
-                        }
-                        else if (opnum === 2)
-                        {
-                            return (val / num);
-                            //return (Math.round((val / num) * 10000) / 10000);
-                        }
-                        else if (opnum === 3) return val + num;
-                        else if (opnum === 4) return val - num;
-                        else if (opnum === 5) return val % num;
-                        else if (opnum === 6) return Math.pow(val, num);
-                        else throw new Error("illegal operation string found!");
-                    });
-                    return nwm;
+                    return m.map((val) => this.doSomeOpOnValByNum(val, num, opnum, usenums, numisnum));
                 }
                 else
                 {
-                    let nwm = m.map((marr) => marr.map((val) => {
-                        if (opnum === 1)
-                        {
-                            return this.mul(val, num);
-                            //return (Math.round(this.mul(val, num) * 10000) / 10000);
-                        }
-                        else if (opnum === 2)
-                        {
-                            return (val / num);//return (Math.round((val / num) * 10000) / 10000);
-                        }
-                        else if (opnum === 3) return val + num;
-                        else if (opnum === 4) return val - num;
-                        else if (opnum === 5) return val % num;
-                        else if (opnum === 6) return Math.pow(val, num);
-                        else throw new Error("illegal operation string found!");
-                    }));
-                    return nwm;
+                    return m.map((marr) => marr.map((val) =>
+                        this.doSomeOpOnValByNum(val, num, opnum, usenums, numisnum)));
                 }
             }
         }
@@ -389,9 +567,10 @@ class Matrices
     }
 
     //matrix multiplication mulitply two matrices here...
-    static multiply(a, b)
+    static multiply(a, b, usenums)
     {
         let cc = new commonclass();
+        cc.letMustBeBoolean(usenums, "usenums");
         if (cc.isLetEmptyNullOrUndefined(a) || cc.isLetEmptyNullOrUndefined(b))
         {
             throw new Error("cannot multiply two matrices if one is null or empty!");
@@ -467,13 +646,19 @@ class Matrices
                     "transpose of a 1D array otherwise cannot multiply!");
                 if (dimsa.length === 1)
                 {
-                    if (numrsa === numrsb) return this.multiply(this.transpose(a), b);
+                    if (numrsa === numrsb)
+                    {
+                        return this.multiply(this.transposeNumsOrFractions(a, usenums), b, usenums);
+                    }
                     //else;//do nothing
                 }
                 //else;//do nothing
                 if (dimsb.length === 1)
                 {
-                    if (numcsa === numcsb) return this.multiply(a, this.transpose(b));
+                    if (numcsa === numcsb)
+                    {
+                        return this.multiply(a, this.transposeNumsOrFractions(b, usenums), usenums);
+                    }
                     //else;//do nothing
                 }
                 //else;//do nothing
@@ -481,12 +666,19 @@ class Matrices
                 //handle the scalar multiplication here
                 if (numrsa === 1 && numcsa === 1)
                 {
-                    if (numrsb === 1 && numcsb === 1) return [this.mul(a[0], b[0])];
+                    if (numrsb === 1 && numcsb === 1)
+                    {
+                        if (usenums) return [this.mul(a[0], b[0])];
+                        else return [this.multiplyTwoFractions(a[0], b[0])];
+                    }
                     else return this.doSomeOpOnAMatrix(b, "*", a[0]);
                 }
                 else
                 {
-                    if (numrsb === 1 && numcsb === 1) return this.doSomeOpOnAMatrix(a, "*", b[0]);
+                    if (numrsb === 1 && numcsb === 1)
+                    {
+                        return this.doSomeOpOnAMatrix(a, "*", b[0], usenums, usenums);
+                    }
                     //else;//do nothing
                 }
                 
@@ -506,11 +698,11 @@ class Matrices
                 for (let r = 0; r < resnumrs; r++)
                 {
                     let myrwarr = [];
-                    for (let c = 0; c < resnumcs; c++) myrwarr.push(0);
+                    for (let c = 0; c < resnumcs; c++) myrwarr.push((usenums ? 0 : "0"));
                     resm.push(myrwarr);
                 }
             }
-            else for (let c = 0; c < resnumcs; c++) resm.push(0);
+            else for (let c = 0; c < resnumcs; c++) resm.push((usenums ? 0 : "0"));
 
             //col in a = row in b indexes
             //row in a = row in res indexes
@@ -527,10 +719,13 @@ class Matrices
                             {
                                 console.log("a[" + ra + "][" + rb + "] = " + a[ra][rb]);
                                 console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
-                                console.log("mulitplied = " + this.mul(a[ra][rb], b[rb][cb]));
+                                
+                                let myresopval = this.doSomeOpOnValByNum(a[ra][rb], b[rb][cb],
+                                    1, usenums, usenums);
+                                console.log("mulitplied = " + myresopval);
                                 console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                                 
-                                resm[ra][cb] += this.mul(a[ra][rb], b[rb][cb]);
+                                resm[ra][cb] += myresopval;
                                 console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             }//end of rb = ca
                         }
@@ -539,10 +734,12 @@ class Matrices
                             //dimsb.length is 1
                             console.log("a[" + ra + "][0] = " + a[ra][0]);
                             console.log("b[" + cb + "] = " + b[cb]);
-                            console.log("mulitplied = " + this.mul(a[ra][0], b[cb]));
+                            let myresopval = this.doSomeOpOnValByNum(a[ra][0], b[cb],
+                                1, usenums, usenums);
+                            console.log("mulitplied = " + myresopval);
                             console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             
-                            resm[ra][cb] += this.mul(a[ra][0], b[cb]);
+                            resm[ra][cb] += myresopval;
                             console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                         }
                     }//end of cb
@@ -557,10 +754,12 @@ class Matrices
                     {
                         console.log("a[" + rb + "] = " + a[rb]);
                         console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
-                        console.log("mulitplied = " + this.mul(a[rb], b[rb][cb]));
+                        let myresopval = this.doSomeOpOnValByNum(a[rb], b[rb][cb],
+                            1, usenums, usenums);
+                        console.log("mulitplied = " + myresopval);
                         console.log("OLD resm[" + cb + "] = " + resm[cb]);
                         
-                        resm[cb] += this.mul(a[rb], b[rb][cb]);
+                        resm[cb] += myresopval;
                         console.log("NEW resm[" + cb + "] = " + resm[cb]);
                     }//end of rb = ca
                 }//end of cb
