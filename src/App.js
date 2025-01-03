@@ -27,7 +27,7 @@ function App() {
   let [balerrfnd, setBalErrorFound] = useState(false);
   const cc = new commonclass();
   
-  let runmtests = false;
+  let runmtests = true;
   if (runmtests)
   {
     //Matrices.testTranspose();//handled in testDeterminant
@@ -37,6 +37,7 @@ function App() {
     Matrices.testGCF();
     Matrices.testLCM();
     Matrices.testToFraction();
+    Matrices.testReplaceColOrRow();
     Matrices.testSolveViaInverse();
   }
   //else;//do nothing
@@ -531,13 +532,16 @@ function App() {
     let mynwstrm = mydatrws.map((crwarr, rindx) => {
       let mynwarr = [];
       crwarr.forEach((val, cindx) => {
+        //console.log("cindx = ", cindx);
+        //console.log("val = " + val);
+        //console.log("myequri = " + myequri);
         if (cindx === 0);
         else
         {
           if (val === "=") myequri = cindx;
           else
           {
-            if (myequri < 0) mynwarr.push(val);
+            if (myequri < 0 || cindx < myequri) mynwarr.push(val);
             else
             {
               if (myequri < cindx)
@@ -890,19 +894,10 @@ function App() {
     return myelems;
   }
 
-  function genEquationsTable(myarr)
+  function getTopDataObject(elembsarr)
   {
-    //the table will have a total number of reactants + number of products + 1 (equals) + 1 (elememts)
-    //the number of columns will be the number of unique elements
-    //these will be the equations only we will relace the name for the lc with ?
-    //what if the number of reactants is more than 26? we will need to call it a_1
-    //so we will arbitrarily do that for reactants r_1 for products p_1 etc.
-    //which means we can pull the number from the object and isreactant or not
-    //let varnm = (myobj.isreactant ? "r" : "p") + "_" + myobj.num;
-    //for balancing these will use the values on the elements
-    //let kynm = (myobj.isreactant ? "r" : "p") + myobj.num;varnm.split("_").join("");
-    const mxrnum = getMaxReactantOrProductsNum(myarr, true);
-    const mxpnum = getMaxReactantOrProductsNum(myarr, false);
+    const mxrnum = getMaxReactantOrProductsNum(elembsarr, true);
+    const mxpnum = getMaxReactantOrProductsNum(elembsarr, false);
     //const mxcols = mxrnum + mxpnum + 1 + 1;
     //names will be generated for the headers from the reactants
     //the first name will be elements
@@ -911,7 +906,7 @@ function App() {
     //then the products
     //for the reactants and the products we will take the lcname * elem base * elem base * ... + ...
     const {reactants, products, reactantsbynum, productsbynum} =
-      getReactantsAndProductsByNumArrays(myarr, mxrnum, mxpnum);
+      getReactantsAndProductsByNumArrays(elembsarr, mxrnum, mxpnum);
     //console.log("reactants = ", reactants);
     //console.log("products = ", products);
     //console.log("reactantsbynum = ", reactantsbynum);
@@ -923,7 +918,7 @@ function App() {
       addifbaseisone);
     
     //get the list of unique elements now
-    const myelems = getUniqueElementNamesOnlyArray(myarr);
+    const myelems = getUniqueElementNamesOnlyArray(elembsarr);
     //console.log("myelems = ", myelems);
     //console.log("myelems.length = " + myelems.length);
 
@@ -942,15 +937,45 @@ function App() {
     //console.log("mybasis = ", mybasis);
     //console.log("mybaeis = ", mybaeis);
 
-    const myhrw = (<tr key="equtablehdrrw" style={{border: "1px solid black"}}>{hnames.map((nm) =>
-      <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
-
     //generate the data rows here...
     let inconetimes = false;//in the equations include 1 * lcnum if the base is 1
-    const myequrws = genEquationOrCountRows(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
-      true, inconetimes);//useequrws, inconetimes
-    const mybalrws = genEquationOrCountRows(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
+    let mydatrws = genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
       false, inconetimes);
+    console.log("mydatrws = ", mydatrws);
+
+    return {"elembsarr": elembsarr, "reactants": reactants, "products": products,
+      "mxrnum": mxrnum, "mxpnum": mxpnum, "reactantsbynum": reactantsbynum,
+      "productsbynum": productsbynum, "addifbaseisone": addifbaseisone, "hnames": hnames,
+      "myelems": myelems, "myelsis": myelsis, "myeleis": myeleis, "mybasis": mybasis,
+      "mybaeis": mybaeis, "inconetimes": inconetimes, "mydatrws": mydatrws
+    };
+  }
+
+  function genEquationsTable(mytopdataobj)
+  {
+    //the table will have a total number of reactants + number of products + 1 (equals) + 1 (elememts)
+    //the number of columns will be the number of unique elements
+    //these will be the equations only we will relace the name for the lc with ?
+    //what if the number of reactants is more than 26? we will need to call it a_1
+    //so we will arbitrarily do that for reactants r_1 for products p_1 etc.
+    //which means we can pull the number from the object and isreactant or not
+    //let varnm = (myobj.isreactant ? "r" : "p") + "_" + myobj.num;
+    //for balancing these will use the values on the elements
+    //let kynm = (myobj.isreactant ? "r" : "p") + myobj.num;varnm.split("_").join("");
+    console.log("mytopdataobj = ", mytopdataobj);
+    cc.letMustBeDefinedAndNotNull(mytopdataobj, "mytopdataobj");
+
+    const myhrw = (<tr key="equtablehdrrw" style={{border: "1px solid black"}}>{
+      mytopdataobj.hnames.map((nm) =>
+        <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
+
+    //generate the data rows here...
+    const myequrws = genEquationOrCountRows(mytopdataobj.myelems, mytopdataobj.hnames,
+      mytopdataobj.myelsis, mytopdataobj.myeleis, mytopdataobj.mybasis, mytopdataobj.mybaeis,
+      true, mytopdataobj.inconetimes);//useequrws, inconetimes
+    const mybalrws = genEquationOrCountRows(mytopdataobj.myelems, mytopdataobj.hnames,
+      mytopdataobj.myelsis, mytopdataobj.myeleis, mytopdataobj.mybasis, mytopdataobj.mybaeis,
+      false, mytopdataobj.inconetimes);
 
     return (<table style={{border: "1px solid black"}}>
       <thead style={{border: "1px solid black"}}>{myhrw}</thead>
@@ -958,41 +983,13 @@ function App() {
     </table>);
   }
 
-  function genBalanceTable(elembsarr)
+  function genBalanceTable(mytopdataobj)
   {
-    const mxrnum = getMaxReactantOrProductsNum(elembsarr, true);
-    const mxpnum = getMaxReactantOrProductsNum(elembsarr, false);
-
-    const {reactants, products, reactantsbynum, productsbynum} =
-      getReactantsAndProductsByNumArrays(elembsarr, mxrnum, mxpnum);
-    //console.log("reactants = ", reactants);
-    //console.log("products = ", products);
-    //console.log("reactantsbynum = ", reactantsbynum);
-    //console.log("productsbynum = ", productsbynum);
-
-    //gets the header names and generates the header row here now
-    let addifbaseisone = false;//user preference includes the base if base is 1
-    const hnames = getHeaderNamesForEquTable(reactantsbynum, productsbynum, mxrnum, mxpnum,
-      addifbaseisone);
-    
-    //get the list of unique elements now
-    const myelems = getUniqueElementNamesOnlyArray(elembsarr);
-    //console.log("myelems = ", myelems);
-    //console.log("myelems.length = " + myelems.length);
-
-    //we need to get where the elements start and end on header row
-    //where do the bases start and end if present
-    const {myelsis, myeleis, mybasis, mybaeis} = getElementAndBaseStartAndEndIndexes(hnames);
-    //console.log("myelsis = ", myelsis);
-    //console.log("myeleis = ", myeleis);
-    //console.log("mybasis = ", mybasis);
-    //console.log("mybaeis = ", mybaeis);
+    console.log("mytopdataobj = ", mytopdataobj);
+    cc.letMustBeDefinedAndNotNull(mytopdataobj, "mytopdataobj");
 
     //generate the data rows here...
-    let inconetimes = false;//in the equations include 1 * lcnum if the base is 1
-    let mydatrws = genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
-      false, inconetimes);
-    console.log("mydatrws = ", mydatrws);
+    console.log("mytopdataobj.mydatrws = ", mytopdataobj.mydatrws);
 
     //the new headers we want are elements, total on left, total on right, is blanced
     const nwhdrs = ["elements", "total on left", "total on right", "is balanced"];
@@ -1005,15 +1002,15 @@ function App() {
     let noonezeroerrorfnd = false;
     let mybdyrws = null;
     let gettherws = true;
-    if (mydatrws.length === 1)
+    if (mytopdataobj.mydatrws.length === 1)
     {
-      if (cc.isLetEmptyNullOrUndefined(mydatrws[0])) gettherws = false;
+      if (cc.isLetEmptyNullOrUndefined(mytopdataobj.mydatrws[0])) gettherws = false;
       //else;//get them
     }
     //else;//get them
     if (gettherws)
     {
-      mybdyrws = mydatrws.map((rarr) => {
+      mybdyrws = mytopdataobj.mydatrws.map((rarr) => {
         if (cc.isLetEmptyNullOrUndefined(rarr)) return null;
         //else;//do nothing
         
@@ -1091,9 +1088,11 @@ function App() {
   console.log("mylcs = ", mylcs);
   console.log("areallequsbalanced = " + areallequsbalanced);
   console.log("balerrfnd = " + balerrfnd);
+
+  let mytopdataobj = getTopDataObject(myelembasearr);
+  console.log("mytopdataobj = ", mytopdataobj);
   
-  let useminv = false;
-  let mydatrws = null;
+  let useminv = true;
   return (<div>
       <h1>Chem Equation Balancer APP</h1>
       <div>{genControlButtons(myelembasearr, true)}
@@ -1102,8 +1101,8 @@ function App() {
         <button style={{marginLeft: "10px"}} onClick={(event) => setLockedBases(!lockedbases)}>
           {lockedbases ? "un": ""}lock bases!</button>
         {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
-          (<button onClick={(event) => solveTheSystem(genMatrixAndAnsMatrix(mydatrws), useminv)}>
-            Solve It!</button>))}
+          (<button onClick={(event) => solveTheSystem(genMatrixAndAnsMatrix(mytopdataobj.mydatrws),
+            useminv)}>Solve It!</button>))}
       </div>
       <div id="equ" style={{display: "inline-block"}}>
         {genReactantsOrProductsDivs(myelembasearr, true)}
@@ -1112,9 +1111,9 @@ function App() {
       </div>
       <br />
       <br />
-      {genEquationsTable(myelembasearr)}
+      {genEquationsTable(mytopdataobj)}
       <br />
-      {genBalanceTable(myelembasearr, mylcs)}
+      {genBalanceTable(mytopdataobj)}
     </div>);
 }
 

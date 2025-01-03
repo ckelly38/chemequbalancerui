@@ -852,6 +852,15 @@ class Matrices
     static replaceAColWith(m, nclorrw, rorci) {
         return this.replaceARowOrColWith(m, nclorrw, rorci, true);
     }
+    static testReplaceColOrRow()
+    {
+        let m = [[2, 0, -2], [0, 2, -1], [1, 0, 0]];
+        let mans = [[0], [0], [1]];
+        console.log("m = ", m);
+        console.log("mans = ", mans);
+        console.log(this.replaceAColWith(m, mans, 0));
+        //throw new Error("NOT DONE YET...!"); 
+    }
 
 
     //HELPER METHODS FOR GETTING THE DETERMINANT (FOR PICKING WHERE TO START)
@@ -1343,7 +1352,19 @@ class Matrices
         let myres = this.multiply(this.inverse(a), bans);
         console.log("MYRES_AX=B = ", myres);
 
-        let myfracs = myres.map((val) => this.toFrac(val));
+        let myresdims = this.dimensions(myres);
+        console.log("myresdims = ", myresdims);
+
+        let bresarr = null;
+        if (myresdims.length < 3)
+        {
+            if (myresdims.length === 1) bresarr = myres;
+            else bresarr = myres.map((marr) => marr[0]);
+        }
+        else throw new Error("invalid resulting dimensions for the matrix inverse!");
+        console.log("bresarr = ", bresarr);
+
+        let myfracs = bresarr.map((val) => this.toFrac(val));
         console.log("myfracs = ", myfracs);
 
         //take all denominators get their GCFs
@@ -1368,7 +1389,7 @@ class Matrices
     static testSolveViaInverse()
     {
         //hangs the browser on toFrac
-        //console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
+        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
         console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
         throw new Error("NOT DONE YET...!");
     }
@@ -1576,11 +1597,23 @@ class Matrices
         }
         //else;//do nothing safe to proceed
 
+        let bdims = this.dimensions(bans);
+        console.log("bdims = ", bdims);
+
+        let barr = null;
+        if (bdims.length < 3)
+        {
+            if (bdims.length === 1) barr = bans;
+            else barr = bans.map((marr) => marr[0]);
+        }
+        else throw new Error("the answer matrix has an invalid dimension length for Cramer's Rule!");
+        console.log("barr = ", barr);
+
         //now to solve for x we need to substitute the answer matrix into each column
         //then get that determinant and divide by main determinant for each x
         let mynumerators = a[0].map((val) => 0);
         let myans = a[0].map((val, cindx) => {
-            let nwdet = this.determinant(this.replaceAColWith(a, bans, cindx));
+            let nwdet = this.determinant(this.replaceAColWith(a, barr, cindx));
             let nwans = Math.round((nwdet / mydet) * 1000) / 1000;
             mynumerators[cindx] = nwdet;
             console.log("ans[" + cindx + "] = " + nwans);
