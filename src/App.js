@@ -30,6 +30,7 @@ function App() {
   let runmtests = true;
   if (runmtests)
   {
+    Matrices.testDoSomeOpOnVals();
     //Matrices.testTranspose();//handled in testDeterminant
     Matrices.testDeterminant();
     Matrices.testInverse();

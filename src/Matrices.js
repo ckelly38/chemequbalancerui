@@ -342,6 +342,13 @@ class Matrices
         cc.letMustNotBeEmpty(mynumdarr, "mynumdarr");
         return mynumdarr[1];
     }
+    static flipFraction(f)
+    {
+        let cc = new commonclass();
+        let mynumdarr = this.getNumeratorAndDenominatorFromFraction(f);
+        cc.letMustNotBeEmpty(mynumdarr, "mynumdarr");
+        return "" + mynumdarr[1] + "/" + mynumdarr[0];
+    }
     static convertFractionToDecimal(f)
     {
         let cc = new commonclass();
@@ -373,12 +380,69 @@ class Matrices
             }
         }
     }
+    static addOrSubtractTwoFractions(a, b, useadd)
+    {
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(a, "a");
+        cc.letMustNotBeEmpty(b, "b");
+        cc.letMustBeBoolean(useadd, "useadd");
+        //we have two fractions
+        //we cannot directly just add them first we need a common denominator
+        //get the LCM of them
+        //A/B +or- C/D get LCM of B AND D, this is the denominator in the final answer
+        //then need the new numerators before we do the operation
+        let mynumdenomarra = this.getNumeratorAndDenominatorFromFraction(a);
+        let mynumdenomarrb = this.getNumeratorAndDenominatorFromFraction(b);
+        let mylcm = this.lcm(mynumdenomarra[1], mynumdenomarrb[1]);
+        if (mylcm === 0) throw new Error("cannot divide by zero!");
+        else
+        {
+            let nwnuma = (mylcm / mynumdenomarra[1]) * mynumdenomarra[0];
+            let nwnumb = (mylcm / mynumdenomarrb[1]) * mynumdenomarrb[0];
+            let finnum = (useadd ? nwnuma + nwnumb : nwnuma - nwnumb);
+            return ((mylcm === 1) ? "" + finnum : "" + finnum + "/" + mylcm);
+        }
+    }
+    static addTwoFractions(a, b) { return this.addOrSubtractTwoFractions(a, b, true); }
+    static subtractTwoFractions(a, b) { return this.addOrSubtractTwoFractions(a, b, false); }
+    static powFractions(a, b)
+    {
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(a, "a");
+        cc.letMustNotBeEmpty(b, "b");
+        //both are fractions
+        //val is to the power of num
+        //val is (a/b)^(c/d) = (a^same power)/(b^same power)
+        //do that then return the result
+        let mynumdenomarrval = this.getNumeratorAndDenominatorFromFraction(a);
+        let mydecnum = this.convertFractionToDecimal(b);
+        return "" + Math.pow(mynumdenomarrval[0], mydecnum) + "/" +
+            Math.pow(mynumdenomarrval[1], mydecnum);
+    }
+
+    static getOPNumFromString(opstr)
+    {
+        let opnum = -1;
+        if (opstr === "*") opnum = 1;
+        else if (opstr === "/") opnum = 2;
+        else if (opstr === "+") opnum = 3;
+        else if (opstr === "-") opnum = 4;
+        else if (opstr === "%") opnum = 5;
+        else if (opstr === "^") opnum = 6;
+        else throw new Error("illegal operation string found!");
+        return opnum;
+    }
 
     static doSomeOpOnValByNum(val, num, opnum, valusenums, numisnum)
     {
         let cc = new commonclass();
         cc.letMustBeBoolean(valusenums, "valusenums");
         cc.letMustBeBoolean(numisnum, "numisnum");
+        console.log("val = " + val);
+        console.log("num = " + num);
+        console.log("opnum = " + opnum);
+        console.log("valusenums = " + valusenums);
+        console.log("numisnum = " + numisnum);
 
         if (opnum === 1)
         {
@@ -395,9 +459,9 @@ class Matrices
             {
                 //one is a fraction, the other is not
                 //convert the one to a fraction then multiply the two fractions
-                //NOT SURE IF THIS IS WHAT I WANT HERE...
-                return this.multiplyTwoFractions((numisnum ? val : "" + val),
+                let mytwofractsres = this.multiplyTwoFractions((valusenums ? "" + val : val),
                     (numisnum ? "" + num : num));
+                return (valusenums ? this.convertFractionToDecimal(mytwofractsres) : mytwofractsres);
             }
         }
         else if (opnum === 2)
@@ -414,9 +478,7 @@ class Matrices
                     //both are fractions...
                     //we want to multiply val by 1 over num
                     //to do this we actually want to flip num's numerator and denominators
-                    let mynumdenomarr = this.getNumeratorAndDenominatorFromFraction(num);
-                    return this.multiplyTwoFractions(val,
-                        "" + mynumdenomarr[0] + "/" + mynumdenomarr[1]);
+                    return this.multiplyTwoFractions(val, this.flipFraction(num));
                 }
             }
             else
@@ -424,83 +486,137 @@ class Matrices
                 //one is a fraction and the other is not...
                 //convert the one to a fraction then multiply the two fractions
                 let mynwfr = (numisnum ? "" + num : num);
-                let mynumdenomarr = this.getNumeratorAndDenominatorFromFraction(mynwfr);
-                return this.multiplyTwoFractions((numisnum ? val : "" + val),
-                    "" + mynumdenomarr[0] + "/" + mynumdenomarr[1]);
+                let mytwofractsres = this.multiplyTwoFractions((numisnum ? val : "" + val),
+                    this.flipFraction(mynwfr));
+                return (valusenums ? this.convertFractionToDecimal(mytwofractsres) :
+                    mytwofractsres);
             }
         }
         else if (opnum === 3 || opnum === 4)
         {
             if (valusenums === numisnum)
             {
-                if (numisnum)
-                {
-                    if (opnum === 3) return val + num;
-                    else return val - num;
-                }
-                else
-                {
-                    //we have two fractions
-                    //we cannot directly just add them first we need a common denominator
-                    //get the LCM of them
-                    //A/B +or- C/D get LCM of B AND D, this is the denominator in the final answer
-                    //then need the new numerators before we do the operation
-                    let mynumdenomarra = this.getNumeratorAndDenominatorFromFraction(val);
-                    let mynumdenomarrb = this.getNumeratorAndDenominatorFromFraction(num);
-                    let mylcm = this.lcm(mynumdenomarra[1], mynumdenomarrb[1]);
-                    if (mylcm === 0) throw new Error("cannot divide by zero!");
-                    else
-                    {
-                        let nwnuma = (mylcm / mynumdenomarra[1]) * mynumdenomarra[0];
-                        let nwnumb = (mylcm / mynumdenomarrb[1]) * mynumdenomarrb[0];
-                        let finnum = ((opnum === 3) ? nwnuma + nwnumb : nwnuma - nwnumb);
-                        return ((mylcm === 1) ? "" + finnum : "" + finnum + "/" + mylcm);
-                    }
-                }
+                if (numisnum) return ((opnum === 3) ? val + num : val - num);
+                else return this.addOrSubtractTwoFractions(val, num, (opnum === 3));
             }
             else
             {
-                //must conver the one that is not a fraction to a fraction before we can begin
+                //must convert the one that is not a fraction to a fraction before we can begin
                 //then we repeat above
                 let nwnum = (numisnum ? "" + num : num);
                 let nwval = (valusenums ? "" + val : val);
-                let mynumdenomarra = this.getNumeratorAndDenominatorFromFraction(nwval);
-                let mynumdenomarrb = this.getNumeratorAndDenominatorFromFraction(nwnum);
-                let mylcm = this.lcm(mynumdenomarra[1], mynumdenomarrb[1]);
-                if (mylcm === 0) throw new Error("cannot divide by zero!");
-                else
-                {
-                    let nwnuma = (mylcm / mynumdenomarra[1]) * mynumdenomarra[0];
-                    let nwnumb = (mylcm / mynumdenomarrb[1]) * mynumdenomarrb[0];
-                    let finnum = ((opnum === 3) ? nwnuma + nwnumb : nwnuma - nwnumb);
-                    return ((mylcm === 1) ? "" + finnum : "" + finnum + "/" + mylcm);
-                }
+                let mytwofractsres = this.addOrSubtractTwoFractions(nwval, nwnum, (opnum === 3));
+                return (valusenums ? this.convertFractionToDecimal(mytwofractsres) :
+                    mytwofractsres);
             }
         }
-        else if (opnum === 5 || opnum === 6)
+        else if (opnum === 5)
         {
-            //convert these both to decimals
+            //modular division we need numbers not fractions
+            //our end result will need to be converted back into whatever the matrix was storing
             if (valusenums === numisnum)
             {
-                if (numisnum) return ((opnum === 5) ? val % num : Math.pow(val, num));
+                if (numisnum) return val % num;
                 else
                 {
-                    //both are fractions
+                    //we have two fractions and we need decimals
+                    //the modular operation only works on decimals
+                    //so we will first need to convert to decimals
+                    //then we will need to convert our result to fractions again OR
+                    //OR THE CELL VALUE WILL LOOK SOMETHING LIKE THIS WITHOUT BEING EVALUATED:
+                    //(a/b) % (c/d)
+                    //BUT WHEN WE GO GO TO GET THE DETERMINANT AND COME ACROSS THAT
+                    //IT WILL NEED EVALUATED
+                    //I THINK WE WILL EVALUATE NOW INSTEAD AND
+                    //JUST LET THE ROUNDING ERROR PROPAGATE THROUGH
                     let mydecnuma = this.convertFractionToDecimal(val);
                     let mydecnumb = this.convertFractionToDecimal(num);
-                    return ((opnum === 5) ? (mydecnuma % mydecnumb) : Math.pow(mydecnuma, mydecnumb));
+                    return "" + (mydecnuma % mydecnumb);
                 }
             }
             else
             {
-                //one is a fraction and one is a decimal
-                let mynwval = (valusenums ? val : this.convertFractionToDecimal(val));
-                let mynwnum = (numisnum ? num : this.convertFractionToDecimal(num));
-                return ((opnum === 5) ? (mynwval % mynwnum) : Math.pow(mynwval, mynwnum));
+                //one is a fraction and one is a decimal, but see above
+                //convert both to decimals
+                //then do it
+                //return result in correct type
+                let nwnum = (numisnum ? num : this.convertFractionToDecimal(num));
+                let nwval = (valusenums ? val : this.convertFractionToDecimal(val));
+                return (valusenums ? (nwval % nwnum) : "" + (nwval % nwnum));
+            }
+        }
+        else if (opnum === 6)
+        {
+            //pow we can do separately with fractions
+            if (valusenums === numisnum)
+            {
+                return (numisnum ? Math.pow(val, num) : this.powFractions(val, num));
+            }
+            else
+            {
+                //one is a fraction and one is not
+                //first convert to fractions
+                //then do it
+                let nwnum = (numisnum ? "" + num : num);
+                let nwval = (valusenums ? "" + val : val);
+                let mytwofractsres = this.powFractions(nwval, nwnum);
+                return (valusenums ? this.convertFractionToDecimal(mytwofractsres) : mytwofractsres); 
             }
         }
         else throw new Error("illegal operation string found!");
     }
+    static testDoSomeOpOnVals()
+    {
+        let fracsm = [["1/2", "1/3", "1/4"], ["1/8", "1/6", "1/7"], ["1/27", "1/9", "1/16"]];
+        let decm = [[2, 3, 4], [8, 6, 7], [27, 9, 16]];
+        let myops = ["*", "/", "+", "-", "%", "^"];
+        let num = 2;
+        let numisnum = true;
+        let valusenums = false;
+        for (let k = 0; k < 2; k++)
+        {
+            console.log("BEGIN MAJOR TEST NUMBER " + (k + 1) + "!");
+            let m = ((k === 0) ? fracsm : decm);
+            valusenums = (k === 1);
+            for (let n = 0; n < 2; n++)
+            {
+                console.log("m = ", m);
+                console.log("n = " + n);
+                if (n === 0)
+                {
+                    num = 2;
+                    numisnum = true;
+                }
+                else
+                {
+                    num = "1/2";
+                    numisnum = false;
+                }
+                console.log("valusenums = " + valusenums);
+                console.log("numisnum = " + numisnum);
+                console.log("num = " + num);
+    
+                myops.forEach((opstr) => {
+                    console.log("BEGIN OP " + opstr + "!");
+                    let opnum = this.getOPNumFromString(opstr);
+                    for (let r = 0; r < m.length; r++)
+                    {
+                        for (let c = 0; c < m[r].length; c++)
+                        {
+                            console.log(this.doSomeOpOnValByNum(m[r][c], num, opnum,
+                                valusenums, numisnum));
+                        }
+                    }
+                    console.log("DONE WITH OP!");
+                    console.log("KEEP IN MIND THE RESULT MUST USE NUMBERS IS: " + valusenums);
+                });
+                console.log("DONE WITH TEST NUMBER " + (n + 1) + "!");
+            }//end of n for loop
+            console.log("DONE WITH MAJOR TEST NUMBER " + (k + 1) + "!");
+        }//end of k for loop
+        throw new Error("NOT DONE YET WITH THE OPS TESTS!");
+    }
+
 
     //NOTE: if the matrix stores fractions, but num is a decimal,
     //mixing these can have undesired consequences
@@ -511,15 +627,7 @@ class Matrices
         cc.letMustBeBoolean(usenums, "usenums");
         cc.letMustNotBeEmpty(opstr, "opstr");
 
-        let opnum = -1;
-        if (opstr === "*") opnum = 1;
-        else if (opstr === "/") opnum = 2;
-        else if (opstr === "+") opnum = 3;
-        else if (opstr === "-") opnum = 4;
-        else if (opstr === "%") opnum = 5;
-        else if (opstr === "^") opnum = 6;
-        else throw new Error("illegal operation string found!");
-        
+        let opnum = this.getOPNumFromString(opstr);
         if (opnum === 2 || opnum === 5)
         {
             if ((numisnum && num === 0) || (!numisnum && num === "0"))
@@ -788,7 +896,7 @@ class Matrices
         //throw new Error("NOT DONE YET...!");
     }
 
-    static canRowABeMultipliedByAConstantToGetRowB(a, b, myrows)
+    static canRowABeMultipliedByAConstantToGetRowB(a, b, myrows, usenums)
     {
         if (a === b) return true;
         //else;//do nothing
@@ -803,10 +911,16 @@ class Matrices
         {
             if (setc)
             {
-                if (myrows[a][c] === 0);
+                if (myrows[a][c] === 0 || myrows[a][c] === "0");
                 else
                 {
-                    myconstant = myrows[b][c] / myrows[a][c];
+                    if (usenums) myconstant = myrows[b][c] / myrows[a][c];
+                    else
+                    {
+                        let mynumdenomarr = this.getNumeratorAndDenominatorFromFraction(myrows[a][c]);
+                        myconstant = this.multiplyTwoFractions(myrows[b][c],
+                            "" + mynumdenomarr[0] + "/" + mynumdenomarr[1]);
+                    }
                     setc = false;
                     //console.log("myrows[" + b + "][" + c + "] = " + myrows[b][c]);
                     //console.log("myrows[" + a + "][" + c + "] = " + myrows[a][c]);
@@ -816,7 +930,13 @@ class Matrices
             }
             else
             {
-                if (myrows[a][c] * myconstant === myrows[b][c]);
+                let isamatch = false;
+                if (usenums) isamatch = (myrows[a][c] * myconstant === myrows[b][c]);
+                else
+                {
+                    isamatch = (this.multiplyTwoFractions(myrows[a][c], myconstant) === myrows[b][c]);
+                }
+                if (isamatch);
                 else
                 {
                     canrowabembyktogetb = false;
@@ -836,7 +956,7 @@ class Matrices
         //else;//do nothing
         for (let n = 0; n < arr.length; n++)
         {
-            if (arr[n] === 0);
+            if (arr[n] === 0 || arr[n] === "0");
             else return false;
         }
         return true;
@@ -866,7 +986,7 @@ class Matrices
                             if (r === c);
                             else
                             {
-                                if (m[r][c] === 0);
+                                if (m[r][c] === 0 || m[r][c] === "0");
                                 else return false;
                             }
                         }
@@ -980,14 +1100,7 @@ class Matrices
     //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
     static getNumberOfANumOnArrWithDesiredOPStr(r, num, arr, opstr)
     {
-        let opnum = -1;
-        if (opstr === "=") opnum = 1;
-        else if (opstr === "<") opnum = 2;
-        else if (opstr === "<=") opnum = 3;
-        else if (opstr === ">") opnum = 4;
-        else if (opstr === "=>") opnum = 5;
-        else throw new Error("illegal operation string found and used here!");
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum);
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, this.getOPNumFromString(opstr));
     }
     static getNumberOfANumOnArr(r, num, arr) {
         return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 1);
