@@ -27,7 +27,7 @@ class commonclass {
   {
     if (this.isLetEmptyNullOrUndefined(varnm)) return this.letMustBeBoolean(val, "varnm");
     //else;//do nothing
-    this.letMustBeDefinedAndNotNull(val, "varnm");
+    this.letMustBeDefinedAndNotNull(val, varnm);
     if (val === true || val === false) return true;
     else throw new Error(varnm + " must be boolean, but it was not!");
   }

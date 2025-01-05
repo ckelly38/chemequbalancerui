@@ -185,43 +185,43 @@ class Matrices
         console.log(this.dimensions(mysqr));
         console.log(this.transposeNumsOrFractions(mysqr, usenums));
         console.log(this.identity([3, 3]));
-        console.log(this.determinant(mysqr));//0
+        console.log(this.determinant(mysqr, usenums));//0
 
         let myom = [[1, 2], [3, 4], [5, 6]];
         console.log("myom = ", myom);
         console.log(this.dimensions(myom));
         console.log(this.identity([3, 2]));
-        console.log(this.determinant(myom));//0
+        console.log(this.determinant(myom, usenums));//0
         
         let mytmyom = this.transpose(myom);
         console.log("mytmyom = ", mytmyom);
         console.log(this.dimensions(mytmyom));
         console.log(this.transposeNumsOrFractions(mytmyom, usenums));
-        console.log(this.determinant(myom));//0
+        console.log(this.determinant(myom, usenums));//0
 
         let mynbytm = [1, 2, 3];
         console.log("mynbytm = ", mynbytm);
         console.log(this.dimensions(mynbytm));
-        console.log(this.determinant(mynbytm));//0
+        console.log(this.determinant(mynbytm, usenums));//0
 
         let mytnbytm = this.transposeNumsOrFractions(mynbytm, usenums);
         console.log("mytnbytm = ", mytnbytm);
         console.log(this.dimensions(mytnbytm));
-        console.log(this.determinant(mytnbytm));//0
+        console.log(this.determinant(mytnbytm, usenums));//0
         console.log(this.transposeNumsOrFractions(mytnbytm, usenums));
         console.log("ABOVE SHOULD BE THE SAME AS: mynbytm = ", mynbytm);
 
         let mydummynum = [1];
         console.log(this.transposeNumsOrFractions(mydummynum, usenums));//[1]
         console.log(this.dimensions(mydummynum));//[1]
-        console.log(this.determinant(mydummynum));//1
+        console.log(this.determinant(mydummynum, usenums));//1
 
         let dimsstrmtst = [["1", "2"], ["3", "4"], ["5", "6"]];
         console.log("dimsstrmtst = ", dimsstrmtst);
         console.log(this.dimensions(dimsstrmtst));
 
         //this.testIdentity();
-        throw new Error("NEED TO CHECK THE RESULTS NOW!");
+        //throw new Error("NEED TO CHECK THE RESULTS NOW!");
     }
 
     static identity(dimsarr)
@@ -422,12 +422,14 @@ class Matrices
 
     static getOPNumFromString(opstr)
     {
+        //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
+        //opnum = 1 *, 2 /, 3 +, 4 -, 5 %, 6 ^
         let opnum = -1;
-        if (opstr === "*") opnum = 1;
-        else if (opstr === "/") opnum = 2;
-        else if (opstr === "+") opnum = 3;
-        else if (opstr === "-") opnum = 4;
-        else if (opstr === "%") opnum = 5;
+        if (opstr === "*" || opstr === "=") opnum = 1;
+        else if (opstr === "/" || opstr === "<") opnum = 2;
+        else if (opstr === "+" || opstr === "<=") opnum = 3;
+        else if (opstr === "-" || opstr === ">") opnum = 4;
+        else if (opstr === "%" || opstr === "=>") opnum = 5;
         else if (opstr === "^") opnum = 6;
         else throw new Error("illegal operation string found!");
         return opnum;
@@ -438,11 +440,11 @@ class Matrices
         let cc = new commonclass();
         cc.letMustBeBoolean(valusenums, "valusenums");
         cc.letMustBeBoolean(numisnum, "numisnum");
-        console.log("val = " + val);
-        console.log("num = " + num);
-        console.log("opnum = " + opnum);
-        console.log("valusenums = " + valusenums);
-        console.log("numisnum = " + numisnum);
+        //console.log("val = " + val);
+        //console.log("num = " + num);
+        //console.log("opnum = " + opnum);
+        //console.log("valusenums = " + valusenums);
+        //console.log("numisnum = " + numisnum);
 
         if (opnum === 1)
         {
@@ -614,7 +616,7 @@ class Matrices
             }//end of n for loop
             console.log("DONE WITH MAJOR TEST NUMBER " + (k + 1) + "!");
         }//end of k for loop
-        throw new Error("NOT DONE YET WITH THE OPS TESTS!");
+        //throw new Error("NOT DONE YET WITH THE OPS TESTS!");
     }
 
 
@@ -779,7 +781,7 @@ class Matrices
                         if (usenums) return [this.mul(a[0], b[0])];
                         else return [this.multiplyTwoFractions(a[0], b[0])];
                     }
-                    else return this.doSomeOpOnAMatrix(b, "*", a[0]);
+                    else return this.doSomeOpOnAMatrix(b, "*", a[0], usenums, usenums);
                 }
                 else
                 {
@@ -881,25 +883,32 @@ class Matrices
     static testMuliply()
     {
         let mygentbytm = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-        console.log(this.multiply([2], mygentbytm));//[2, 4, 6], [8, 10, 12], [14, 16, 18];
-        console.log(this.multiply(this.identity([3, 3]), mygentbytm));//mygentbytm
+        let usenums = true;
+        console.log(this.multiply([2], mygentbytm, usenums));//[2, 4, 6], [8, 10, 12], [14, 16, 18];
+        console.log(this.multiply(this.identity([3, 3]), mygentbytm, usenums));//mygentbytm
         
         let mytbytwom = [[7, 8], [9, 10], [11, 12]];
         let mytwobytm = [[1, 2, 3], [4, 5, 6]];
-        console.log(this.multiply(mytwobytm, mytbytwom));//[58, 64], [139, 154]
+        console.log(this.multiply(mytwobytm, mytbytwom, usenums));//[58, 64], [139, 154]
         
         let mytbyfr = [[13, 9, 7, 15], [8, 7, 4, 6], [6, 4, 0, 3]];
-        console.log(this.multiply([3, 4, 2], mytbyfr));//[83, 63, 37, 75]
-        console.log(this.multiply([1, 2, 3], [[4], [5], [6]]));//[32]
-        console.log(this.multiply([[4], [5], [6]], [1, 2, 3]));//[[4, 8, 12], [5, 10, 15], [6, 12, 18]]
+        console.log(this.multiply([3, 4, 2], mytbyfr, usenums));//[83, 63, 37, 75]
+        console.log(this.multiply([1, 2, 3], [[4], [5], [6]], usenums));//[32]
+        console.log(this.multiply([[4], [5], [6]], [1, 2, 3], usenums));
+        //[[4, 8, 12], [5, 10, 15], [6, 12, 18]]
         
         //throw new Error("NOT DONE YET...!");
     }
 
     static canRowABeMultipliedByAConstantToGetRowB(a, b, myrows, usenums)
     {
+        let cc = new commonclass();
+        cc.letMustBeBoolean(usenums, "usenums");
+        
         if (a === b) return true;
         //else;//do nothing
+        
+        cc.letMustNotBeEmpty(myrows, "myrows");
 
         //console.log(myrows[a]);
         //console.log(myrows[b]);
@@ -1050,16 +1059,19 @@ class Matrices
         else return ((((r + 1) + (c + 1)) % 2 === 0) ? 1 : -1);
     }
 
+    //IS EFFECTED BY WHAT IS STORED IN THE MATRIX
     //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
-    static getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum)
+    static getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, opnum, usenums)
     {
         //console.log("r = " + r);
         //console.log("num = " + num);
         //console.log("arr = ", arr);
+        //console.log("usenums = ", usenums);
         if (r < 0) throw new Error("r is not allowed to be negative!");
         //else;//do nothing
 
         let cc = new commonclass();
+        cc.letMustBeBoolean(usenums, "usenums");
         if (cc.isLetEmptyNullOrUndefined(arr)) return 0;
         else
         {
@@ -1067,29 +1079,30 @@ class Matrices
             for (let c = 0; c < arr[r].length; c++)
             {
                 //console.log("arr[" + r + "][" + c + "] = " + arr[r][c]);
+                let myfdecnum = (usenums ? arr[r][c] : this.convertFractionToDecimal(arr[r][c]));
                 if (opnum === 1)
                 {
-                    if (arr[r][c] === num) cnt++;
+                    if (myfdecnum === num) cnt++;
                     //else;//do nothing
                 }
                 else if (opnum === 2)
                 {
-                    if (arr[r][c] < num) cnt++;
+                    if (myfdecnum < num) cnt++;
                     //else;//do nothing
                 }
                 else if (opnum === 3)
                 {
-                    if (arr[r][c] < num || arr[r][c] === num) cnt++;
+                    if (myfdecnum < num || myfdecnum === num) cnt++;
                     //else;//do nothing
                 }
                 else if (opnum === 4)
                 {
-                    if (num < arr[r][c]) cnt++;
+                    if (num < myfdecnum) cnt++;
                     //else;//do nothing
                 }
                 else if (opnum === 5)
                 {
-                    if (num < arr[r][c] || arr[r][c] === num) cnt++;
+                    if (num < myfdecnum || myfdecnum === num) cnt++;
                     //else;//do nothing
                 }
                 else throw new Error("illegal operation number found and used here!");
@@ -1098,31 +1111,33 @@ class Matrices
         }
     }
     //opnum = 1 =, 2 <, 3 <=, 4 >, 5 =>
-    static getNumberOfANumOnArrWithDesiredOPStr(r, num, arr, opstr)
+    static getNumberOfANumOnArrWithDesiredOPStr(r, num, arr, opstr, usenums)
     {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, this.getOPNumFromString(opstr));
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr,
+            this.getOPNumFromString(opstr), usenums);
     }
-    static getNumberOfANumOnArr(r, num, arr) {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 1);
+    static getNumberOfANumOnArr(r, num, arr, usenums) {
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 1, usenums);
     }
-    static getNumberOfNumsUnderNumOnArr(r, num, arr)
+    static getNumberOfNumsUnderNumOnArr(r, num, arr, usenums)
     {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 2);
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 2, usenums);
     }
-    static getNumberOfNumsAtOrUnderNumOnArr(r, num, arr)
+    static getNumberOfNumsAtOrUnderNumOnArr(r, num, arr, usenums)
     {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 3);
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 3, usenums);
     }
-    static getNumberOfNumsAboveNumOnArr(r, num, arr)
+    static getNumberOfNumsAboveNumOnArr(r, num, arr, usenums)
     {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 4);
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 4, usenums);
     }
-    static getNumberOfNumsAtOrAboveNumOnArr(r, num, arr)
+    static getNumberOfNumsAtOrAboveNumOnArr(r, num, arr, usenums)
     {
-        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 5);
+        return this.getNumberOfANumUnderOverAtOrMoreOnArr(r, num, arr, 5, usenums);
     }
 
     //this errors out if not a 2D matrix
+    //NOT EFFECTED BY WHAT IS STORED IN THE MATRIX
     static replaceARowOrColWith(m, nclorrw, rorci, subcols)
     {
         //if matrix is not a 2d matrix, this errors out
@@ -1176,29 +1191,32 @@ class Matrices
 
 
     //HELPER METHODS FOR GETTING THE DETERMINANT (FOR PICKING WHERE TO START)
+    //THESE ARE ALL EFFECTED BY WHAT IS STORED ON THE MATRIX
 
-    static maxItemsFoundOnMyArray(myarr)
+    static maxItemsFoundOnMyArray(myarr, usenums)
     {
         let cc = new commonclass();
         cc.letMustNotBeEmpty(myarr, "myarr");
+        cc.letMustBeBoolean(usenums, "usenums");
 
         let mxnumfnd = -1;
         let mxrorci = -1;
         for (let c = 0; c < myarr.length; c++)
         {
-            if (0 < myarr[c])
+            let mydecnum = (usenums ? myarr[c] : this.convertFractionToDecimal(myarr[c]));
+            if (0 < mydecnum)
             {
                 if (mxrorci < 0)
                 {
                     mxrorci = c;
-                    mxnumfnd = myarr[c];
+                    mxnumfnd = mydecnum;
                 }
                 else
                 {
-                    if (mxnumfnd < myarr[c])
+                    if (mxnumfnd < mydecnum)
                     {
                         mxrorci = c;
-                        mxnumfnd = myarr[c];
+                        mxnumfnd = mydecnum;
                     }
                     //else;//do nothing
                 }
@@ -1217,25 +1235,26 @@ class Matrices
         return {"maxnumfound": mxnumfnd, "maxroworcoli": mxrorci};
     }
 
-    static getUseRowAndColIndexsInfo(rwarr, clarr, basenmforarrs="mxnumfndon")
+    static getUseRowAndColIndexsInfo(rwarr, clarr, usenums, basenmforarrs="mxnumfndon")
     {
         let cc = new commonclass();
+        cc.letMustBeBoolean(usenums, "usenums");
         if (cc.isLetEmptyNullOrUndefined(basenmforarrs))
         {
-            return this.getUseRowAndColIndexsInfo(rwarr, clarr, "mxnumfndon");
+            return this.getUseRowAndColIndexsInfo(rwarr, clarr, usenums, "mxnumfndon");
         }
         //else;//do nothing
 
         let userow = true;
         let mycl = -1;
         let myrw = -1;
-        let mymxitemsonarrzerosrw = this.maxItemsFoundOnMyArray(rwarr);
+        let mymxitemsonarrzerosrw = this.maxItemsFoundOnMyArray(rwarr, usenums);
         let mxnumfndonrws = mymxitemsonarrzerosrw.maxnumfound;
         let mxrwi = mymxitemsonarrzerosrw.maxroworcoli;
         console.log(basenmforarrs + "rws = " + mxnumfndonrws);
         console.log("mxrwi = " + mxrwi);
 
-        let mymxitemsonarrzeroscl = this.maxItemsFoundOnMyArray(clarr);
+        let mymxitemsonarrzeroscl = this.maxItemsFoundOnMyArray(clarr, usenums);
         let mxnumfndoncls = mymxitemsonarrzeroscl.maxnumfound;
         let mxcli = mymxitemsonarrzeroscl.maxroworcoli;
         console.log(basenmforarrs + "cls = " + mxnumfndoncls);
@@ -1254,10 +1273,11 @@ class Matrices
         return {"userow": userow, "myrw": myrw, "mycl": mycl};
     }
 
-    static determinant(m)
+    static determinant(m, usenums)
     {
         let cc = new commonclass();
-        if (cc.isLetEmptyNullOrUndefined(m)) return 0;
+        cc.letMustBeBoolean(usenums, "usenums");
+        if (cc.isLetEmptyNullOrUndefined(m)) return (usenums ? 0 : "0");
         else
         {
             let dims = this.dimensions(m);
@@ -1271,13 +1291,18 @@ class Matrices
 
                 //is the matrix a square matrix, if so find it below return 0
                 if (dims[0] === dims[1]);
-                else return 0;//not a square matrix
+                else return (usenums ? 0 : "0");//not a square matrix
 
                 if (dims[0] === 2)
                 {
                     //this is a 2 x 2 matrix determinant is: AD-BC
                     //[A, B][C, D]
-                    return this.mul(m[0][0], m[1][1]) - this.mul(m[0][1], m[1][0]);
+                    if (usenums) return this.mul(m[0][0], m[1][1]) - this.mul(m[0][1], m[1][0]);
+                    else
+                    {
+                        return this.subtractTwoFractions(this.multiplyTwoFractions(m[0][0], m[1][1]),
+                            this.multiplyTwoFractions(m[0][1], m[1][0]));
+                    }
                 }
                 //else proceed this is where it gets interesting
 
@@ -1302,14 +1327,20 @@ class Matrices
                     for (let rorc = 0; rorc < myarr.length; rorc++)
                     {
                         console.log(mytpstr + "[" + rorc + "] = ", myarr[rorc]);
-                        if (this.doesRowOrColHaveAllZeros(myarr[rorc])) return 0;
+                        if (this.doesRowOrColHaveAllZeros(myarr[rorc])) return (usenums ? 0 : "0");
                         //else;//do nothing
                         for (let k = rorc + 1; k < myarr.length; k++)
                         {
                             console.log(mytpstr + "[" + k + "] = ", myarr[k]);
-                            if (this.areTwoRowsOrColsTheSame(rorc, k, myarr)) return 0;
+                            if (this.areTwoRowsOrColsTheSame(rorc, k, myarr))
+                            {
+                                return (usenums ? 0 : "0");
+                            }
                             //else;//do nothing
-                            if (this.canRowABeMultipliedByAConstantToGetRowB(rorc, k, myarr)) return 0;
+                            if (this.canRowABeMultipliedByAConstantToGetRowB(rorc, k, myarr, usenums))
+                            {
+                                return (usenums ? 0 : "0");
+                            }
                             //else;//do nothing
                         }
                     }
@@ -1325,8 +1356,12 @@ class Matrices
                 //otherwise proceed below
                 if (this.isDiagnalMatrix(m))
                 {
-                    let myval = 1;
-                    for (let r = 0; r < m.length; r++) myval *= m[r][r];
+                    let myval = (usenums ? 1 : "1");
+                    for (let r = 0; r < m.length; r++)
+                    {
+                        if (usenums) myval *= m[r][r];
+                        else myval = this.multiplyTwoFractions(myval, m[r][r]);
+                    }
                     console.log("THIS IS A DIAGNAL MATRIX SO MULTIPLY MAIN DIAGNAL!");
                     console.log("myval = " + myval);
                     
@@ -1356,22 +1391,22 @@ class Matrices
                 //figure out how many zeros are in the rows
                 //then the cols, then same for 1s.
                 let numzerosonrws = myrows.map((arr, rindx) =>
-                    this.getNumberOfANumOnArr(rindx, 0, myrows));
+                    this.getNumberOfANumOnArr(rindx, 0, myrows, usenums));
                 let numonesonrws = myrows.map((arr, rindx) =>
-                    this.getNumberOfANumOnArr(rindx, 1, myrows));
+                    this.getNumberOfANumOnArr(rindx, 1, myrows, usenums));
                 let numzerosoncls = mycols.map((arr, rindx) =>
-                    this.getNumberOfANumOnArr(rindx, 0, mycols));
+                    this.getNumberOfANumOnArr(rindx, 0, mycols, usenums));
                 let numonesoncls = mycols.map((arr, rindx) =>
-                    this.getNumberOfANumOnArr(rindx, 1, mycols));
+                    this.getNumberOfANumOnArr(rindx, 1, mycols, usenums));
                 console.log("numzerosonrws = ", numzerosonrws);
                 console.log("numonesonrws = ", numonesonrws);
                 console.log("numzerosoncls = ", numzerosoncls);
                 console.log("numonesoncls = ", numonesoncls);
 
                 let numslessthantenonrws = myrows.map((arr, rindx) =>
-                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, myrows, "<"));
+                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, myrows, "<", usenums));
                 let numslessthantenoncls = myrows.map((arr, rindx) =>
-                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, mycols, "<"));
+                    this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, mycols, "<", usenums));
                 console.log("numslessthantenonrws = ", numslessthantenonrws);
                 console.log("numslessthantenoncls = ", numslessthantenoncls);
 
@@ -1388,7 +1423,8 @@ class Matrices
                         ((n === 1) ? numonesonrws : numslessthantenonrws));
                     for (let c = 0; c < myarr.length; c++)
                     {
-                        if (0 < myarr[c])
+                        let myfdecnum = (usenums ? myarr[c] : this.convertFractionToDecimal(myarr[c]));
+                        if (0 < myfdecnum)
                         {
                             if (n === 0) zerofnd = true;
                             else if (n === 1) onefnd = true;
@@ -1410,7 +1446,7 @@ class Matrices
                     //if they are equal arbitrarily use row with the first zero found
                     //index is valid this was already checked
                     let myuserwclobj = this.getUseRowAndColIndexsInfo(numzerosonrws,
-                        numzerosoncls, "mxzerosfndon");
+                        numzerosoncls, usenums, "mxzerosfndon");
                     userow = myuserwclobj.userow;
                     myrw = myuserwclobj.myrw;
                     mycl = myuserwclobj.mycl;
@@ -1420,7 +1456,7 @@ class Matrices
                     if (onefnd)
                     {
                         let myuserwclobj = this.getUseRowAndColIndexsInfo(numonesonrws,
-                            numonesoncls, "mxonesfndon");
+                            numonesoncls, usenums, "mxonesfndon");
                         userow = myuserwclobj.userow;
                         myrw = myuserwclobj.myrw;
                         mycl = myuserwclobj.mycl;
@@ -1430,7 +1466,7 @@ class Matrices
                         if (numundrtenfnd)
                         {
                             let myuserwclobj = this.getUseRowAndColIndexsInfo(numslessthantenonrws,
-                                numslessthantenoncls, "mxnumsundertenfndon");
+                                numslessthantenoncls, usenums, "mxnumsundertenfndon");
                             userow = myuserwclobj.userow;
                             myrw = myuserwclobj.myrw;
                             mycl = myuserwclobj.mycl;
@@ -1448,7 +1484,8 @@ class Matrices
                 console.log("mycl = " + mycl);
 
 
-                let mydval = 0;
+                let mydval = (usenums ? 0 : "0");
+                let myfunc = (usenums ? this.mul : this.multiplyTwoFractions);
                 if (userow)
                 {
                     if (myrw < 0) throw new Error("myrw is not allowed to be negative!");
@@ -1456,9 +1493,14 @@ class Matrices
 
                     for (let c = 0; c < m[myrw].length; c++)
                     {
-                        let cfval = this.mul(this.mul(this.getSignOfCofactor(myrw, c), m[myrw][c]),
-                            this.determinant(this.getMinor(m, myrw, c)));
-                        mydval += cfval;
+                        //sign of cofactor is int; myrw and c are ints;
+                        //the values store in the matrix are not necessarily fractions
+                        let mysignval = this.getSignOfCofactor(myrw, c);
+                        let finsignval = (usenums ? mysignval : "" + mysignval);
+                        let cfval = myfunc(myfunc(finsignval, m[myrw][c]),
+                                this.determinant(this.getMinor(m, myrw, c), usenums));
+                        if (usenums) mydval += cfval;
+                        else mydval = this.addTwoFractions(mydval, cfval); 
                         console.log("cfval = " + cfval);
                         console.log("NEW mydval = " + mydval);
                     }
@@ -1470,9 +1512,12 @@ class Matrices
 
                     for (let r = 0; r < m.length; r++)
                     {
-                        let cfval = this.mul(this.mul(this.getSignOfCofactor(r, mycl), m[r][mycl]),
-                            this.determinant(this.getMinor(m, r, mycl)));
-                        mydval += cfval;
+                        let mysignval = this.getSignOfCofactor(r, mycl);
+                        let finsignval = (usenums ? mysignval : "" + mysignval);
+                        let cfval = myfunc(myfunc(finsignval, m[r][mycl]),
+                                this.determinant(this.getMinor(m, r, mycl), usenums));
+                        if (usenums) mydval += cfval;
+                        else mydval = this.addTwoFractions(mydval, cfval); 
                         console.log("cfval = " + cfval);
                         console.log("NEW mydval = " + mydval);
                     }
@@ -1481,73 +1526,76 @@ class Matrices
 
                 return mydval;
             }
-            else return 0;//cannot do computations with this
+            else return (usenums ? 0 : "0");//cannot do computations with this
         }
     }
     static testDeterminant()
     {
         let minim = [1];
+        let usenums = true;
         console.log(this.isDiagnalMatrix(minim));//true
         console.log(this.dimensions(minim));//[1]
-        console.log(this.determinant(minim));//1
+        console.log(this.determinant(minim, usenums));//1
 
         let myom = [[1, 2], [3, 4], [5, 6]];
+        let numisnum = true;
         console.log("myom = ", myom);
         console.log(this.dimensions(myom));
-        console.log(this.determinant(myom));//0
+        console.log(this.determinant(myom, usenums));//0
 
-        console.log(this.doSomeOpOnAMatrix(myom, "*", 2));
-        console.log(this.doSomeOpOnAMatrix([1, 2, 3], "*", 2));
+        console.log(this.doSomeOpOnAMatrix(myom, "*", 2, usenums, numisnum));
+        console.log(this.doSomeOpOnAMatrix([1, 2, 3], "*", 2, usenums, numisnum));
         //throw new Error("NEED TO TEST MATH ON WHOLE MATRIX RESULTS NOW!");
 
-        let mytmom = this.transpose(myom);
+        let mytmom = this.transposeNumsOrFractions(myom, usenums);
         console.log("mytmom = ", mytmom);
         console.log(this.dimensions(mytmom));
-        console.log(this.determinant(mytmom));//0
+        console.log(this.determinant(mytmom, usenums));//0
 
         let srwm = [[1, 2, 3], [4, 5, 6], [1, 2, 3]];
         console.log("srwm = ", srwm);
-        console.log(this.determinant(srwm));//0
+        console.log(this.determinant(srwm, usenums));//0
 
         let sclm = [[1, 4, 1], [2, 5, 2], [3, 6, 3]];
         console.log("sclm = ", sclm);
-        console.log(this.determinant(sclm));//0
+        console.log(this.determinant(sclm, usenums));//0
 
         let zrwm = [[0, 0, 0], [4, 5, 6], [1, 2, 3]];
         console.log("zrwm = ", zrwm);
-        console.log(this.determinant(zrwm));//0
+        console.log(this.determinant(zrwm, usenums));//0
 
         let zclm = [[0, 4, 1], [0, 5, 2], [0, 6, 3]];
         console.log("zclm = ", zclm);
-        console.log(this.determinant(zclm));//0
+        console.log(this.determinant(zclm, usenums));//0
 
         let mcrwm = [[1, 2, 3], [4, 5, 6], [2, 4, 6]];
         console.log("mcrwm = ", mcrwm);
-        console.log(this.determinant(mcrwm));//0
+        console.log(this.determinant(mcrwm, usenums));//0
 
         let mcclm = [[1, 4, 2], [2, 5, 4], [3, 6, 6]];
         console.log("mcclm = ", mcclm);
         console.log(this.isDiagnalMatrix(mcclm));
-        console.log(this.determinant(mcclm));//0
+        console.log(this.determinant(mcclm, usenums));//0
 
         let idm = this.identity([3, 3]);
         console.log("idm = ", idm);
         console.log(this.isDiagnalMatrix(idm));
-        console.log(this.determinant(idm));//1
+        console.log(this.determinant(idm, usenums));//1
 
         let diagtst = [[3, 0, 0], [0, 3, 0], [0, 0, 3]];
         console.log("diagtst = ", diagtst);
         console.log(this.isDiagnalMatrix(diagtst));
-        console.log(this.determinant(diagtst));//3*3*3=27
+        console.log(this.determinant(diagtst, usenums));//3*3*3=27
 
         this.testTranspose();
         this.testMuliply();
     }
 
     //returns null when determinant is zero, but error will be printed out to the console
-    static inverse(m)
+    static inverse(m, usenums)
     {
         let cc = new commonclass();
+        cc.letMustBeBoolean(usenums, "usenums");
         if (cc.isLetEmptyNullOrUndefined(m)) throw new Error("matrix cannot be empty!");
         else
         {
@@ -1559,7 +1607,7 @@ class Matrices
             }
             //else;//do nothing
 
-            let mydet = this.determinant(m);
+            let mydet = this.determinant(m, usenums);
             if (mydet === 0)
             {
                 console.error("this has no inverse, the determinant is zero. Therefore the " +
@@ -1579,7 +1627,10 @@ class Matrices
             {
                 for (let c = 0; c < m[r].length; c++)
                 {
-                    if (m[r][c] === myidentitym[r][c]);
+                    let ismatch = false;
+                    if (usenums) ismatch = (m[r][c] === myidentitym[r][c]);
+                    else ismatch = (this.convertFractionToDecimal(m[r][c]) === myidentitym[r][c]);
+                    if (ismatch);
                     else
                     {
                         isidm = false;
@@ -1601,114 +1652,71 @@ class Matrices
             let mofcofactors = null;
             if (mydims[0] === 2 && mydims[1] === 2) 
             {
-                let nwb = ((m[0][1] === 0) ? 0 : this.mul(-1, m[0][1]));
-                let nwc = ((m[1][0] === 0) ? 0 : this.mul(-1, m[1][0]));
+                let nwb = (usenums ? this.mul(-1, m[0][1]) : this.multiplyTwoFractions("-1", m[0][1]));
+                let nwc = (usenums ? this.mul(-1, m[1][0]) : this.multiplyTwoFractions("-1", m[1][0]));
                 mofcofactors = [[m[1][1], nwb], [nwc, m[0][0]]];
             }
             else
             {
+                let myfunc = (usenums ? this.mul : this.multiplyTwoFractions);
                 mofcofactors = m.map((marr, rindx) => marr.map((val, cindx) => {
-                    let detminr = this.determinant(this.getMinor(m, rindx, cindx));
-                    return this.mul(this.getSignOfCofactor(rindx, cindx), detminr);
+                    let detminr = this.determinant(this.getMinor(m, rindx, cindx), usenums);
+                    let mysignval = this.getSignOfCofactor(rindx, cindx);
+                    return myfunc((usenums ? mysignval : "" + mysignval), detminr);
                 }));
-                mofcofactors = this.transpose(mofcofactors);
+                mofcofactors = this.transposeNumsOrFractions(mofcofactors, usenums);
             }
-            return this.doSomeOpOnAMatrix(mofcofactors, "/", mydet);
+            return this.doSomeOpOnAMatrix(mofcofactors, "/", mydet, usenums, usenums);
         }
     }
     static testInverse()
     {
         this.testDeterminant();
 
-        console.log(this.inverse([1]));
+        let usenums = true;
+        console.log(this.inverse([1], usenums));
         
         let myorigtwobytwo = [[-3, 4], [2, -1]];
         console.log("myorigtwobytwo = ", myorigtwobytwo);
 
-        let myinvtwobytwo = this.inverse(myorigtwobytwo);
+        let myinvtwobytwo = this.inverse(myorigtwobytwo, usenums);
         console.log("myinvtwobytwo = ", myinvtwobytwo);
         //[[1/5 or 0.2, 2/5 or 0.4], [3/5 or 0.6, 4/5 or 0.8]]
-        console.log(this.inverse(myinvtwobytwo));
+        console.log(this.inverse(myinvtwobytwo, usenums));
         console.log("THE ABOVE SHOULD BE EQUAL TO: myorigtwobytwo = ", myorigtwobytwo);
         
         let myorigtbyt = [[1, 1, 1], [1, 2, 2], [2, 3, 4]];
         console.log("myorigtbyt = ", myorigtbyt);
 
-        let myinvorigtbyt = this.inverse(myorigtbyt);//[2, -1, 0], [0, 2, -1], [-1, -1, 1]
+        let myinvorigtbyt = this.inverse(myorigtbyt, usenums);//[2, -1, 0], [0, 2, -1], [-1, -1, 1]
         console.log("myinvorigtbyt = ", myinvorigtbyt);
-        console.log(this.inverse(myinvorigtbyt));
+        console.log(this.inverse(myinvorigtbyt, usenums));
         console.log("ABOVE SHOULD BE EQUAL TO: myorigtbyt = ", myorigtbyt);
 
-        console.log(this.inverse(this.identity([3, 3])));//should be the same
-        //same for all diagnal matrices I think
+        console.log(this.inverse(this.identity([3, 3]), usenums));//should be the same
+        console.log(this.inverse([["1", "0", "0"], ["0", "1", "0"], ["0", "0", "1"]], false));
         
         let diagtst = [[3, 0, 0], [0, 3, 0], [0, 0, 3]];
         console.log("diagtst = ", diagtst);
         console.log(this.isDiagnalMatrix(diagtst));
         
-        let myinvdiagtest = this.inverse(diagtst);
+        let myinvdiagtest = this.inverse(diagtst, usenums);
         console.log("myinvdiagtest = ", myinvdiagtest);
 
-        console.log(this.inverse(myinvdiagtest));
+        console.log(this.inverse(myinvdiagtest, usenums));
         console.log("THE ABOVE SHOULD BE EQUAL TO: diagtst = ", diagtst);
         
         //throw new Error("NOT DONE YET...!");
     }
 
-    static SolveViaMatrixInverse(a, bans)
-    {
-        //ax=b -> x=b/a=(a^(-1))*b -> 1/a=a^(-1)=a_inverse a*(a^(-1)) = IDENTITY -> IDENTITY * x = x
-        let cc = new commonclass();
-        cc.letMustNotBeEmpty(a, "a");
-        cc.letMustNotBeEmpty(bans, "bans");
-        let myres = this.multiply(this.inverse(a), bans);
-        console.log("MYRES_AX=B = ", myres);
 
-        let myresdims = this.dimensions(myres);
-        console.log("myresdims = ", myresdims);
-
-        let bresarr = null;
-        if (myresdims.length < 3)
-        {
-            if (myresdims.length === 1) bresarr = myres;
-            else bresarr = myres.map((marr) => marr[0]);
-        }
-        else throw new Error("invalid resulting dimensions for the matrix inverse!");
-        console.log("bresarr = ", bresarr);
-
-        let myfracs = bresarr.map((val) => this.toFrac(val));
-        console.log("myfracs = ", myfracs);
-
-        //take all denominators get their GCFs
-        //then multiply by them to get integers
-        //then return
-        //if the GCF of all denominators is 1, then just multiply them all together
-        //that will be the LCM. Then multiply all numerators by it.
-        let mynumrs = [];
-        let mydenoms = [];
-        myfracs.forEach((val) => {
-            mynumrs.push(val[0]);
-            mydenoms.push(val[1]);
-        });
-        let mylcd = this.mainLCM(mydenoms);
-        console.log("mylcd = " + mylcd);
-
-        let myints = mynumrs.map((val, indx) => ((mylcd / mydenoms[indx]) * val));
-        console.log("myints = " + myints);
-
-        return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
-    }
-    static testSolveViaInverse()
-    {
-        //hangs the browser on toFrac
-        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
-        console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
-        throw new Error("NOT DONE YET...!");
-    }
-
+    //https://www.cuemath.com/numbers/gcf-greatest-common-factor/
+    //NOTE: the lcm method was based off of this GCF method
+    //this may not be the most efficient GCF method, but it is pretty close
+    //it handles a few base cases that the others do not, and it also switches the parameters
+    //that is basically the only difference
     static gcf(a, b)
     {
-        //https://www.cuemath.com/numbers/gcf-greatest-common-factor/
         //console.log("GCF OF a = " + a + " AND b = " + b + ":");
         if (b === a) return a;
         else if (a === 0 || b === 0) return 0;
@@ -1893,12 +1901,68 @@ class Matrices
         //throw new Error("NOT DONE YET!");
     }
 
-    static CramersRule(a, bans)
+    //SOLVING METHODS BELOW ARE EFFECTED BY WHAT IS STORED IN THE MATRIX 1-4-2025 10 PM
+
+    static SolveViaMatrixInverse(a, bans)
+    {
+        //ax=b -> x=b/a=(a^(-1))*b -> 1/a=a^(-1)=a_inverse a*(a^(-1)) = IDENTITY -> IDENTITY * x = x
+        let cc = new commonclass();
+        cc.letMustNotBeEmpty(a, "a");
+        cc.letMustNotBeEmpty(bans, "bans");
+        let myres = this.multiply(this.inverse(a), bans);
+        console.log("MYRES_AX=B = ", myres);
+
+        let myresdims = this.dimensions(myres);
+        console.log("myresdims = ", myresdims);
+
+        let bresarr = null;
+        if (myresdims.length < 3)
+        {
+            if (myresdims.length === 1) bresarr = myres;
+            else bresarr = myres.map((marr) => marr[0]);
+        }
+        else throw new Error("invalid resulting dimensions for the matrix inverse!");
+        console.log("bresarr = ", bresarr);
+
+        let myfracs = bresarr.map((val) => this.toFrac(val));
+        console.log("myfracs = ", myfracs);
+
+        //take all denominators get their GCFs
+        //then multiply by them to get integers
+        //then return
+        //if the GCF of all denominators is 1, then just multiply them all together
+        //that will be the LCM. Then multiply all numerators by it.
+        let mynumrs = [];
+        let mydenoms = [];
+        myfracs.forEach((val) => {
+            mynumrs.push(val[0]);
+            mydenoms.push(val[1]);
+        });
+        let mylcd = this.mainLCM(mydenoms);
+        console.log("mylcd = " + mylcd);
+
+        let myints = mynumrs.map((val, indx) => ((mylcd / mydenoms[indx]) * val));
+        console.log("myints = " + myints);
+
+        return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
+    }
+    static testSolveViaInverse()
+    {
+        //hangs the browser on toFrac
+        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
+        console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
+        throw new Error("NOT DONE YET...!");
+    }
+
+    //NOT DONE YET 1-5-2025 4:15 AM NEED TO MAKE SURE THAT FRACTIONS CAN WORK WITH THIS,
+    //BUT STILL WANT INTEGER ANSWERS
+
+    static CramersRule(a, bans, usenums)
     {
         console.log("a = ", a);
         console.log("bans = ", bans);
 
-        let mydet = this.determinant(a);
+        let mydet = this.determinant(a, usenums);
         console.log("mydet = ", mydet);
 
         if (mydet === 0)
@@ -1913,11 +1977,7 @@ class Matrices
         console.log("bdims = ", bdims);
 
         let barr = null;
-        if (bdims.length < 3)
-        {
-            if (bdims.length === 1) barr = bans;
-            else barr = bans.map((marr) => marr[0]);
-        }
+        if (bdims.length < 3) barr = ((bdims.length === 1) ? bans : bans.map((marr) => marr[0]));
         else throw new Error("the answer matrix has an invalid dimension length for Cramer's Rule!");
         console.log("barr = ", barr);
 
@@ -1925,8 +1985,10 @@ class Matrices
         //then get that determinant and divide by main determinant for each x
         let mynumerators = a[0].map((val) => 0);
         let myans = a[0].map((val, cindx) => {
-            let nwdet = this.determinant(this.replaceAColWith(a, barr, cindx));
-            let nwans = Math.round((nwdet / mydet) * 1000) / 1000;
+            let nwdet = this.determinant(this.replaceAColWith(a, barr, cindx), usenums);
+            let nwans = null;
+            if (usenums) nwans = Math.round((nwdet / mydet) * 1000) / 1000;
+            else nwans = this.multiplyTwoFractions(nwdet, this.flipFraction(mydet));
             mynumerators[cindx] = nwdet;
             console.log("ans[" + cindx + "] = " + nwans);
             return nwans;
@@ -1939,7 +2001,11 @@ class Matrices
         //THE LCM BEING ALL OF THE REDUCED DENOMINATORS MULTIPLIED TOGETHER
         console.log("mynumerators = ", mynumerators);
 
-        let mymngcf = this.mainGCF(mynumerators);
+        let mydecnumerators = null;
+        if (usenums) mydecnumerators = mynumerators;
+        else mydecnumerators = mynumerators.map((val) => this.convertFractionToDecimal(val));
+
+        let mymngcf = this.mainGCF(mydecnumerators);
         let mynewnums = mynumerators.map((val) => val /= mymngcf);
         console.log("mynewnums = ", mynewnums);
 
@@ -1947,8 +2013,9 @@ class Matrices
     }
     static testCramersRule()
     {
-        console.log(this.CramersRule([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
-        console.log(this.CramersRule([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
+        let usenums = true;
+        console.log(this.CramersRule([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9], usenums));
+        console.log(this.CramersRule([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1], usenums));
     }
 }
 
