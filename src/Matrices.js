@@ -327,7 +327,21 @@ class Matrices
         {
             let mydelimi = f.indexOf("/");
             if (mydelimi < 0 || f.length - 1 < mydelimi) return [Number(f), 1];
-            else return f.split("/").map((val) => Number(val));
+            else
+            {
+                let mynumdenomarr = f.split("/").map((val) => Number(val));
+                if (mynumdenomarr[0] === mynumdenomarr[1]) return [1, 1];
+                if (mynumdenomarr[1] < 0)
+                {
+                    let oldnum = mynumdenomarr[0];
+                    let mynwnum = mynumdenomarr[0] * (-1);
+                    let mynwdenom = mynumdenomarr[1] * (-1);
+                    if (mynwnum === mynwdenom) return [1, 1];
+                    else if (oldnum === mynwdenom) return [-1, 1];
+                    else return [mynwnum, mynwdenom];
+                }
+                else return mynumdenomarr;
+            }
         }
     }
     static getNumerator(f) {
@@ -376,6 +390,9 @@ class Matrices
                 if (mynwdenom === 0) throw new Error("cannot divide by zero!");
                 else if (mynwdenom === 1) return "" + mynwnumr;
                 else if (mynwdenom === -1) return "" + this.mul(-1, mynwnumr);
+                else if (mynwnumr === mynwdenom) return "1";
+                else if (mynwnumr === (mynwdenom * (-1))) return "-1";
+                else if (mynwdenom < 0) return "" + (mynwnumr * (-1)) + "/" + (mynwdenom * (-1));
                 else return "" + mynwnumr + "/" + mynwdenom;
             }
         }
@@ -795,7 +812,7 @@ class Matrices
                 throw new Error("cannot multiply these matrices or not by a legal transpose of " +
                     "a 1D array!");
             }
-            console.log("can mutliply these matrices!");
+            console.log("can multiply these matrices!");
 
             let resnumrs = numrsa;
             let resnumcs = numcsb;
@@ -835,7 +852,8 @@ class Matrices
                                 console.log("mulitplied = " + myresopval);
                                 console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                                 
-                                resm[ra][cb] += myresopval;
+                                if (usenums) resm[ra][cb] += myresopval;
+                                else resm[ra][cb] = this.addTwoFractions(resm[ra][cb], myresopval);
                                 console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             }//end of rb = ca
                         }
@@ -849,7 +867,8 @@ class Matrices
                             console.log("mulitplied = " + myresopval);
                             console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             
-                            resm[ra][cb] += myresopval;
+                            if (usenums) resm[ra][cb] += myresopval;
+                            else resm[ra][cb] = this.addTwoFractions(resm[ra][cb], myresopval);
                             console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                         }
                     }//end of cb
@@ -869,7 +888,8 @@ class Matrices
                         console.log("mulitplied = " + myresopval);
                         console.log("OLD resm[" + cb + "] = " + resm[cb]);
                         
-                        resm[cb] += myresopval;
+                        if (usenums) resm[cb] += myresopval;
+                        else resm[cb] = this.addTwoFractions(resm[cb], myresopval);
                         console.log("NEW resm[" + cb + "] = " + resm[cb]);
                     }//end of rb = ca
                 }//end of cb
@@ -1423,8 +1443,7 @@ class Matrices
                         ((n === 1) ? numonesonrws : numslessthantenonrws));
                     for (let c = 0; c < myarr.length; c++)
                     {
-                        let myfdecnum = (usenums ? myarr[c] : this.convertFractionToDecimal(myarr[c]));
-                        if (0 < myfdecnum)
+                        if (0 < myarr[c])
                         {
                             if (n === 0) zerofnd = true;
                             else if (n === 1) onefnd = true;
@@ -1446,7 +1465,7 @@ class Matrices
                     //if they are equal arbitrarily use row with the first zero found
                     //index is valid this was already checked
                     let myuserwclobj = this.getUseRowAndColIndexsInfo(numzerosonrws,
-                        numzerosoncls, usenums, "mxzerosfndon");
+                        numzerosoncls, true, "mxzerosfndon");
                     userow = myuserwclobj.userow;
                     myrw = myuserwclobj.myrw;
                     mycl = myuserwclobj.mycl;
@@ -1456,7 +1475,7 @@ class Matrices
                     if (onefnd)
                     {
                         let myuserwclobj = this.getUseRowAndColIndexsInfo(numonesonrws,
-                            numonesoncls, usenums, "mxonesfndon");
+                            numonesoncls, true, "mxonesfndon");
                         userow = myuserwclobj.userow;
                         myrw = myuserwclobj.myrw;
                         mycl = myuserwclobj.mycl;
@@ -1466,7 +1485,7 @@ class Matrices
                         if (numundrtenfnd)
                         {
                             let myuserwclobj = this.getUseRowAndColIndexsInfo(numslessthantenonrws,
-                                numslessthantenoncls, usenums, "mxnumsundertenfndon");
+                                numslessthantenoncls, true, "mxnumsundertenfndon");
                             userow = myuserwclobj.userow;
                             myrw = myuserwclobj.myrw;
                             mycl = myuserwclobj.mycl;
@@ -1482,10 +1501,13 @@ class Matrices
                 console.log("userow = " + userow);
                 console.log("myrw = " + myrw);
                 console.log("mycl = " + mycl);
+                //console.log("m = ", m);
+                //console.log("this = ", this);
 
 
                 let mydval = (usenums ? 0 : "0");
                 let myfunc = (usenums ? this.mul : this.multiplyTwoFractions);
+                let mycontxt = this;
                 if (userow)
                 {
                     if (myrw < 0) throw new Error("myrw is not allowed to be negative!");
@@ -1497,7 +1519,9 @@ class Matrices
                         //the values store in the matrix are not necessarily fractions
                         let mysignval = this.getSignOfCofactor(myrw, c);
                         let finsignval = (usenums ? mysignval : "" + mysignval);
-                        let cfval = myfunc(myfunc(finsignval, m[myrw][c]),
+                        //console.log("finsignval = " + finsignval);
+
+                        let cfval = myfunc.call(mycontxt, myfunc.call(mycontxt, finsignval, m[myrw][c]),
                                 this.determinant(this.getMinor(m, myrw, c), usenums));
                         if (usenums) mydval += cfval;
                         else mydval = this.addTwoFractions(mydval, cfval); 
@@ -1514,7 +1538,9 @@ class Matrices
                     {
                         let mysignval = this.getSignOfCofactor(r, mycl);
                         let finsignval = (usenums ? mysignval : "" + mysignval);
-                        let cfval = myfunc(myfunc(finsignval, m[r][mycl]),
+                        //console.log("finsignval = " + finsignval);
+
+                        let cfval = myfunc.call(mycontxt, myfunc.call(mycontxt, finsignval, m[r][mycl]),
                                 this.determinant(this.getMinor(m, r, mycl), usenums));
                         if (usenums) mydval += cfval;
                         else mydval = this.addTwoFractions(mydval, cfval); 
@@ -1659,10 +1685,11 @@ class Matrices
             else
             {
                 let myfunc = (usenums ? this.mul : this.multiplyTwoFractions);
+                let mycontxt = this;
                 mofcofactors = m.map((marr, rindx) => marr.map((val, cindx) => {
                     let detminr = this.determinant(this.getMinor(m, rindx, cindx), usenums);
                     let mysignval = this.getSignOfCofactor(rindx, cindx);
-                    return myfunc((usenums ? mysignval : "" + mysignval), detminr);
+                    return myfunc.call(mycontxt, (usenums ? mysignval : "" + mysignval), detminr);
                 }));
                 mofcofactors = this.transposeNumsOrFractions(mofcofactors, usenums);
             }
@@ -1720,7 +1747,9 @@ class Matrices
         //console.log("GCF OF a = " + a + " AND b = " + b + ":");
         if (b === a) return a;
         else if (a === 0 || b === 0) return 0;
-        else if (a === 1 || b === 1) return 1;
+        else if (a === 1 || b === 1 || a === -1 || b === -1) return 1;
+        else if (a < 0) return this.gcf(a * (-1), b);
+        else if (b < 0) return this.gcf(a, b * (-1));
         else
         {
             if (a < b)
@@ -1867,8 +1896,10 @@ class Matrices
         console.log("THE LCM OF " + mybarr + " IS: " + this.mainLCM(mybarr));
     }
 
-    //https://stackoverflow.com/questions/23575218/convert-decimal-number-to-fraction-in-javascript-or-closest-fraction
-    //https://stackoverflow.com/questions/14002113/how-to-simplify-a-decimal-into-the-smallest-possible-fraction
+    //https://stackoverflow.com/questions/23575218/
+    //convert-decimal-number-to-fraction-in-javascript-or-closest-fraction
+    //https://stackoverflow.com/questions/14002113/
+    //how-to-simplify-a-decimal-into-the-smallest-possible-fraction
     //returns null in the event of failing to get what we need
     static toFrac(num) {
         let i = 1;
@@ -1901,15 +1932,41 @@ class Matrices
         //throw new Error("NOT DONE YET!");
     }
 
-    //SOLVING METHODS BELOW ARE EFFECTED BY WHAT IS STORED IN THE MATRIX 1-4-2025 10 PM
+    //SOLVING METHODS BELOW ARE EFFECTED BY WHAT IS STORED IN THE MATRIX
 
-    static SolveViaMatrixInverse(a, bans)
+    static SolveViaMatrixInverse(a, bans, usenums)
     {
         //ax=b -> x=b/a=(a^(-1))*b -> 1/a=a^(-1)=a_inverse a*(a^(-1)) = IDENTITY -> IDENTITY * x = x
+        console.log("a = ", a);
+        console.log("bans = ", bans);
+        console.log("usenums = " + usenums);
+
         let cc = new commonclass();
         cc.letMustNotBeEmpty(a, "a");
         cc.letMustNotBeEmpty(bans, "bans");
-        let myres = this.multiply(this.inverse(a), bans);
+        cc.letMustBeBoolean(usenums, "usenums");
+        
+        let mynwarr = (usenums ? a.map((arr) => arr.map((val) => "" + val)) : a);
+        let mynwbans = null;
+        if (usenums)
+        {
+            let mybansdims = this.dimensions(bans);
+            console.log("mybansdims = ", mybansdims);
+
+            if (mybansdims.length < 3)
+            {
+                if (mybansdims.length === 2) mynwbans = bans.map((arr) => arr.map((val) => "" + val));
+                else mynwbans = bans.map((val) => "" + val);
+            }
+            else throw new Error("illegal dimensions found for the answer array!");
+        }
+        else mynwbans = bans;
+        let resusenums = false;
+        let myres = this.multiply(this.inverse(mynwarr, resusenums), mynwbans, resusenums);
+        console.log("a = ", a);
+        console.log("bans = ", bans);
+        console.log("resusenums = " + resusenums);
+        console.log("usenums = " + usenums);
         console.log("MYRES_AX=B = ", myres);
 
         let myresdims = this.dimensions(myres);
@@ -1918,14 +1975,17 @@ class Matrices
         let bresarr = null;
         if (myresdims.length < 3)
         {
-            if (myresdims.length === 1) bresarr = myres;
-            else bresarr = myres.map((marr) => marr[0]);
+            bresarr = ((myresdims.length === 1) ? myres : myres.map((marr) => marr[0]));
         }
         else throw new Error("invalid resulting dimensions for the matrix inverse!");
         console.log("bresarr = ", bresarr);
 
-        let myfracs = bresarr.map((val) => this.toFrac(val));
+        let myfracs = bresarr;
+        //may hang the browser if used
+        //let myfracs = (usenums ? bresarr.map((val) => this.toFrac(val)) : bresarr);
         console.log("myfracs = ", myfracs);
+
+        //throw new Error("NEED TO DO SOMETHING HERE FOR THE MOMENT!");
 
         //take all denominators get their GCFs
         //then multiply by them to get integers
@@ -1935,27 +1995,44 @@ class Matrices
         let mynumrs = [];
         let mydenoms = [];
         myfracs.forEach((val) => {
-            mynumrs.push(val[0]);
-            mydenoms.push(val[1]);
+            //if (usenums)
+            //{
+            //    mynumrs.push(val[0]);
+            //    mydenoms.push(val[1]);
+            //}
+            //else
+            //{
+                let myfracnumdenomobj = this.getNumeratorAndDenominatorFromFraction(val);
+                mynumrs.push(myfracnumdenomobj[0]);
+                mydenoms.push(myfracnumdenomobj[1]);
+            //}
         });
         let mylcd = this.mainLCM(mydenoms);
         console.log("mylcd = " + mylcd);
 
         let myints = mynumrs.map((val, indx) => ((mylcd / mydenoms[indx]) * val));
-        console.log("myints = " + myints);
+        console.log("NEW myints = " + myints);
+        
+        let mygcf = this.mainGCF(myints);
+        console.log("mygcf = " + mygcf);
+
+        myints = myints.map((val) => val /= mygcf);
+        console.log("FINAL myints = " + myints);
+        console.log("DONE WITH SOLVE VIA MATRIX INVERSE NOW!");
 
         return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
     }
     static testSolveViaInverse()
     {
-        //hangs the browser on toFrac
-        console.log(this.SolveViaMatrixInverse([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9]));
-        console.log(this.SolveViaMatrixInverse([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1]));
+        let usenums = true;
+        let otherm = [[1, 2, 3], [3, 5, 7], [4, -3, 2]];//hangs the browser on toFrac
+        console.log(this.SolveViaMatrixInverse(otherm, [5, 7, 9], usenums));
+        let waterm = [[2, 0, -2], [0, 2, -1], [1, 0, 0]];
+        console.log(this.SolveViaMatrixInverse(waterm, [0, 0, 1], usenums));
         throw new Error("NOT DONE YET...!");
     }
 
-    //NOT DONE YET 1-5-2025 4:15 AM NEED TO MAKE SURE THAT FRACTIONS CAN WORK WITH THIS,
-    //BUT STILL WANT INTEGER ANSWERS
+    //STILL WANT INTEGER ANSWERS
 
     static CramersRule(a, bans, usenums)
     {
@@ -1993,6 +2070,12 @@ class Matrices
             console.log("ans[" + cindx + "] = " + nwans);
             return nwans;
         });
+        console.log("a = ", a);
+        console.log("bans = ", bans);
+        console.log("mydet = ", mydet);
+        console.log("bdims = ", bdims);
+        console.log("myans = ", myans);
+        console.log("usenums = " + usenums);
         //need to reduce the numerator by the GCF of the DENOMINATOR
         //2/4 -> 1/2, 4/4 -> 1/1
         //we can keep all of the numerators only (we multiplied by the denominator)
@@ -2004,18 +2087,28 @@ class Matrices
         let mydecnumerators = null;
         if (usenums) mydecnumerators = mynumerators;
         else mydecnumerators = mynumerators.map((val) => this.convertFractionToDecimal(val));
+        console.log("mydecnumerators = ", mydecnumerators);
 
         let mymngcf = this.mainGCF(mydecnumerators);
-        let mynewnums = mynumerators.map((val) => val /= mymngcf);
+        let mynewnums = mydecnumerators.map((val) => val /= mymngcf);
         console.log("mynewnums = ", mynewnums);
+        console.log("DONE WITH CRAMER'S RULE NOW!");
 
-        return {"ans": myans, "myintans": mynewnums, "mydet": mydet, "mynumerators": mynumerators};
+        return {"ans": myans, "myintans": mynewnums, "mydet": mydet, "mynumerators": mydecnumerators};
     }
     static testCramersRule()
     {
         let usenums = true;
-        console.log(this.CramersRule([[1, 2, 3], [3, 5, 7], [4, -3, 2]], [5, 7, 9], usenums));
-        console.log(this.CramersRule([[2, 0, -2], [0, 2, -1], [1, 0, 0]], [0, 0, 1], usenums));
+        let otherdecm = [[1, 2, 3], [3, 5, 7], [4, -3, 2]];
+        console.log(this.CramersRule(otherdecm, [5, 7, 9], usenums));
+        let otherfracm = otherdecm.map((marr) => marr.map((val) => "" + val));
+        console.log(this.CramersRule(otherfracm, ["5", "7", "9"], usenums));
+        //throw new Error("NOT DONE YET...!");
+        let waterdecm = [[2, 0, -2], [0, 2, -1], [1, 0, 0]];
+        console.log(this.CramersRule(waterdecm, [0, 0, 1], usenums));
+        let waterfracsm = waterdecm.map((marr) => marr.map((val) => "" + val));
+        console.log(this.CramersRule(waterfracsm, ["0", "0", "1"], false));
+        //throw new Error("NOT DONE YET...!");
     }
 }
 

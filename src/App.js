@@ -15,7 +15,8 @@ import Matrices from './Matrices';
 function App() {
   //elembase has element, base# but one reactant has a bunch of elements and bases
   //element, base#, num, type
-  let initrobj = {"id": "r1_0", "element": "", "base": 1, "isreactant": true, "num": 1, "canrem": false};
+  let initrobj = {"id": "r1_0", "element": "", "base": 1, "isreactant": true, "num": 1,
+    "canrem": false};
   let initpobj = {"id": "p1_0", "element": "", "base": 1, "isreactant": false, "num": 1,
     "canrem": false};
   let initrlcobj = {"num": 1, "isreactant": true, "lcval": 1};
@@ -27,13 +28,14 @@ function App() {
   let [balerrfnd, setBalErrorFound] = useState(false);
   const cc = new commonclass();
   
-  let runmtests = true;
+  let runmtests = false;
   if (runmtests)
   {
     Matrices.testDoSomeOpOnVals();
     //Matrices.testTranspose();//handled in testDeterminant
     Matrices.testDeterminant();
     Matrices.testInverse();
+    //console.log(Matrices.multiplyTwoFractions("2/2", "-2/2"));//2/2*2/-2=4/-4=-1
     Matrices.testCramersRule();
     Matrices.testGCF();
     Matrices.testLCM();
@@ -579,7 +581,8 @@ function App() {
     let usestrs = false;//actually dictated by if fractions are stored or numbers directly
     let a = (usestrs ? matrixobj.mynumstringmatrix : matrixobj.mynummatrix);
     let b = (usestrs ? matrixobj.myanswerstringmatrix : matrixobj.myanswernummatrix);
-    let myresobj = (useminv ? Matrices.SolveViaMatrixInverse(a, b) : Matrices.CramersRule(a, b));
+    let myresobj = (useminv ? Matrices.SolveViaMatrixInverse(a, b, !usestrs) :
+      Matrices.CramersRule(a, b, !usestrs));
     console.log("myresobj = ", myresobj);
     console.log("mylcs = ", mylcs);
     //return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
