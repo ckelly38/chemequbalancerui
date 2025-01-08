@@ -32,6 +32,434 @@ class commonclass {
     else throw new Error(varnm + " must be boolean, but it was not!");
   }
 
+  isNotANumber(deflet) { return (this.isLetUndefinedOrNull(deflet) || isNaN(deflet)); }
+
+  letmustbeanumber(deflet, vnm="var")
+  {
+    this.letMustBeDefinedAndNotNull(vnm, "vnm");
+
+    if (this.isNotANumber(deflet)) throw new Error(vnm + " must be a number, but it was not!");
+    //else;//do nothing
+  }
+
+  bothListsMustBeTheSameSize(lista, listb, listanm="lista", listbnm="listb")
+  {
+    this.letMustNotBeEmpty(listanm, "lista name");
+    this.letMustNotBeEmpty(listbnm, "listb name");
+
+    const errmsg = "" + listanm + " and " + listbnm + " must both be the same size!";
+    if (this.isLetUndefinedOrNull(lista))
+    {
+      if (this.isLetUndefinedOrNull(listb));
+      else throw new Error(errmsg);
+    }
+    else
+    {
+      if (this.isLetUndefinedOrNull(listb)) throw new Error(errmsg);
+      else
+      {
+        if (lista.length === listb.length);
+        else throw new Error(errmsg);
+      }
+    }
+  }
+
+  //IS STRING INDEX OR NUM VALID METHODS
+
+  //both max and min are included
+  isNumInvalid(num, minnum, maxnum)
+  {
+    this.letmustbeanumber(num, "num");
+    this.letmustbeanumber(minnum, "minnum");
+    this.letmustbeanumber(maxnum, "maxnum");
+    return (num < minnum || maxnum < num);
+  }
+
+  stringIndexIsInvalid(indx, mstr, minvindx = 0)
+  {
+    this.letMustBeDefinedAndNotNull(mstr, "mstr");
+    return this.isNumInvalid(indx, minvindx, mstr.length - 1);
+  }
+
+  stringIndexOfIsInvalid(querystr, mstr, minvindx = 0)
+  {
+    this.letMustBeDefinedAndNotNull(mstr, "mstr");
+    this.letMustBeDefinedAndNotNull(querystr, "querystr");
+    this.letmustbeanumber(minvindx, "minvindx");
+    return this.stringIndexIsInvalid(mstr.indexOf(querystr), mstr, minvindx);
+  }
+
+  letNumMustBeValid(num, minnum, maxnum)
+  {
+    if (this.isNumInvalid(num, minnum, maxnum))
+    {
+      throw new Error("the number must be valid, but it was not!");
+    }
+    else return true;
+  }
+
+  letNumMustBeInvalid(num, minnum, maxnum)
+  {
+    if (this.isNumInvalid(num, minnum, maxnum)) return true;
+    else throw new Error("the number must not be valid, but it was!");
+  }
+
+  letStringIndexMustBeValid(strindx, str, minvindx = 0)
+  {
+    if (this.stringIndexIsInvalid(strindx, str, minvindx)) 
+    {
+      throw new Error("the string index must be valid, but it was not!");
+    }
+    else return true;
+  }
+
+  letStringIndexMustBeInvalid(strindx, str, minvindx = 0)
+  {
+    if (this.stringIndexIsInvalid(strindx, str, minvindx)) return true;
+    else throw new Error("the string index must not be valid, but it was!");
+  }
+
+  //SOME BASIC STRING OPERATION METHODS AND TYPE OF CHARACTER METHODS
+
+  isDigit(mchar)
+  {
+    this.letMustBeDefinedAndNotNull(mchar, "mchar");
+    
+    if (mchar.length === 1)
+    {
+      if (mchar === '0' || mchar === '1' || mchar === '2' || mchar === '3' || mchar === '4' ||
+        mchar === '5' || mchar === '6' || mchar === '7' || mchar === '8' || mchar === '9')
+      {
+        return true;
+      }
+      else return false;
+    }
+    else throw new Error("not a character!");
+  }
+
+  mylower(mstr)
+  {
+    return (this.isLetUndefinedOrNull(mstr) ? null : ((mstr.length < 1) ? "" : mstr.toLowerCase()));
+  }
+
+  myupper(mstr)
+  {
+    return (this.isLetUndefinedOrNull(mstr) ? null : ((mstr.length < 1) ? "" : mstr.toUpperCase()));
+  }
+
+  myisupper(mstr)
+  {
+    return (this.isLetEmptyNullOrUndefined(mstr) ? true : (mstr === this.myupper(mstr)));
+  }
+  myislower(mstr)
+  {
+    return (this.isLetEmptyNullOrUndefined(mstr) ? true : (mstr === this.mylower(mstr)));
+  }
+
+  isLetter(mstr)
+  {
+    if (this.isLetEmptyNullOrUndefined(mstr)) return false;
+    else
+    {
+      if (mstr.length === 1);
+      else return false;
+
+      const myalpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const myochr = mstr.toUpperCase();
+      const mci = myalpha.indexOf(myochr);
+      if (mci < 0 || myalpha.length < mci || myalpha.length === mci) return false;
+      else return true;
+    }
+  }
+
+  isalnum(mstr) { return (this.isLetter(mstr) || this.isDigit(mstr)); }
+
+  //it must include the starting index given
+  //-1 will be returned if the string is empty
+  //an error will be thrown if there is no number found at the given index
+  getNumStartOrEndIndexGivenTheOther(mystr, numsorei, isstart, igspcs = false)
+  {
+    this.letMustBeBoolean(igspcs, "igspcs");
+    this.letMustBeBoolean(isstart, "isstart");
+    this.letmustbeanumber(numsorei, "numsorei");
+    if (this.isLetEmptyNullOrUndefined(mystr)) return -1;
+    //else;//do nothing
+
+    const delta = (isstart ? 1 : -1);
+    for (let i = numsorei; ((0 < i || i === 0) && i < mystr.length); i += delta)
+    {
+      if (this.isDigit(mystr.charAt(i)));
+      else
+      {
+        if (i === numsorei) throw new Error("it must be a number at the numsorei, but it was not!");
+        else
+        {
+          let retnow = ((mystr.charAt(i) === ' ' && igspcs) ? false : true);
+          if (retnow) return (isstart ? i : i + 1);
+          //else;//do nothing
+        }
+      }
+    }
+    return (isstart ? mystr.length : 0);
+  }
+  getNumEndIndexGivenStart(mystr, numsi, igspcs = false)
+  {
+    return this.getNumStartOrEndIndexGivenTheOther(mystr, numsi, true, igspcs);
+  }
+  //inclusive ei
+  getNumStartIndexGivenEnd(mystr, numei, igspcs = false)
+  {
+    return this.getNumStartOrEndIndexGivenTheOther(mystr, numei, false, igspcs);
+  }
+
+  //it must include the starting index given
+  //an error will be thrown if there is no number found at the given index
+  getNumGivenStartOrEndIndex(mystr, numsorei, isstart, igspcs = false)
+  {
+    this.letMustNotBeEmpty(mystr, "mystr");
+    this.letMustBeBoolean(igspcs, "igspcs");
+    this.letmustbeanumber(numsorei, "numsorei");
+    this.letStringIndexMustBeValid(numsorei, mystr, 0);
+
+    //console.log("mystr = " + mystr);
+    //console.log("numsorei = " + numsorei);
+    //console.log("isstart = " + isstart);
+    //console.log("igspcs = " + igspcs);
+
+    let osorei = this.getNumStartOrEndIndexGivenTheOther(mystr, numsorei, isstart, igspcs);
+    //console.log("osorei = " + osorei);
+
+    this.letStringIndexMustBeValid(osorei, mystr, 0);
+
+    let numsi = (isstart ? numsorei : osorei);
+    let numei = (isstart ? osorei : numsorei);
+    //console.log("numsi = " + numsi);
+    //console.log("numei = " + numei);
+    
+    let mynumstr = null;
+    if (numei + 1 < mystr.length) mynumstr = mystr.substring(numsi, numei + 1);
+    else if (numei + 1 === mystr.length) mynumstr = mystr.substring(numsi);
+    else throw new Error("illegal num end index found and used here!");
+    //console.log("mynumstr = " + mynumstr);
+    
+    let mynum = Number(mynumstr);
+    //console.log("mynum = " + mynum);
+
+    return mynum;
+  }
+  getNumGivenEndIndex(mystr, numei, igspcs = false)
+  {
+    return this.getNumGivenStartOrEndIndex(mystr, numei, false, igspcs);
+  }
+  getNumGivenStartIndex(mystr, numsi, igspcs = false)
+  {
+    return this.getNumGivenStartOrEndIndex(mystr, numsi, true, igspcs);
+  }
+
+  //-1 will be returned if the string is empty or not found
+  //strsi is the starting index used and this works forwards
+  getNumStartIndex(mystr, strsi = 0)
+  {
+    this.letmustbeanumber(strsi, "strsi");
+    if (strsi < 0) return this.getNumStartIndex(mystr, 0);
+    //else;//do nothing
+    if (this.isLetEmptyNullOrUndefined(mystr)) return -1;
+    //else;//do nothing
+
+    for (let i = strsi; i < mystr.length; i++)
+    {
+      if (this.isDigit(mystr.charAt(i))) return i;
+      //else;//do nothing
+    }
+    return -1;
+  }
+  //-1 will be returned if the string is empty or not found
+  //strsi is the starting index used and this works backwards
+  //the end index is exclusive
+  getNumEndIndex(mystr, strsi = 0)
+  {
+    this.letmustbeanumber(strsi, "strsi");
+    if (this.isLetEmptyNullOrUndefined(mystr)) return -1;
+    //else;//do nothing
+    if (strsi < 0) return this.getNumEndIndex(mystr, mystr.length - 1);
+    //else;//do nothing
+
+    let useex = true;
+    for (let i = strsi; ((i === 0 || 0 < i) && i < mystr.length); i--)
+    {
+      if (this.isDigit(mystr.charAt(i))) return (useex ? i + 1 : i);
+      //else;//do nothing
+    }
+    return -1;
+  }
+  //calls the two above
+  getNumStartOrEndIndex(mystr, usestart, strsi = 0)
+  {
+    this.letMustBeBoolean(usestart, "usestart");
+    return (usestart ? this.getNumStartIndex(mystr, strsi) : this.getNumEndIndex(mystr, strsi));
+  }
+
+  hasNoDigitsInString(mystr) { return (this.getNumStartIndex(mystr, 0) < 0); }
+
+  testGetNumStartOrEndIndexGivenOther()
+  {
+    let mytempdoctext = "013294790237809";// asldfjkasldjflkasdjfkljsdalkf
+    //                   012345678901234
+    //                   0         1
+    console.log(this.getNumStartIndexGivenEnd(mytempdoctext, 14, false));//0
+    console.log(this.getNumEndIndexGivenStart(mytempdoctext, 0, false));//15
+    
+    mytempdoctext = "013294790237809 asldfjkasldjflkasdjfkljsdalkf";
+    console.log(this.getNumEndIndex(mytempdoctext, mytempdoctext.length - 1));
+
+    mytempdoctext = "asldfjkasldjflkasdjfkljsdalkf 013294790237809";
+    console.log(this.getNumStartIndex(mytempdoctext, 0));
+  }
+
+  getAllNumbersFromTheString(mystr, strsi = 0, addnumsi = 0, igspcs = false)
+  {
+    this.letMustBeBoolean(igspcs, "igspcs");
+    this.letmustbeanumber(strsi, "strsi");
+    this.letmustbeanumber(addnumsi, "addnumsi");
+    if (addnumsi < 0) return this.getAllNumbersFromTheString(mystr, strsi, 0, igspcs);
+    //else;//do nothing
+    if (this.isLetEmptyNullOrUndefined(mystr)) return null;
+    //else;//do nothing
+
+    //console.log("mystr = " + mystr);
+    //console.log("strsi = " + strsi);
+    this.letStringIndexMustBeValid(strsi, mystr, 0);
+
+    let numsi = this.getNumStartIndex(mystr, strsi);
+    if (numsi < 0) return null;
+    else
+    {
+      let numei = this.getNumEndIndexGivenStart(mystr, numsi, igspcs);
+      let mynumstr = mystr.substring(numsi, numei);
+      let myretarr = [{"num": Number(mynumstr), "si": addnumsi + numsi, "ei": addnumsi + numei,
+        "value": mynumstr}];
+      if (numei < mystr.length)
+      {
+        let mytempretarr = this.getAllNumbersFromTheString(mystr, numei, addnumsi, igspcs);
+        if (this.isLetEmptyNullOrUndefined(mytempretarr));
+        else mytempretarr.forEach((itemobj) => myretarr.push(itemobj));
+      }
+      //else;//do nothing
+      return myretarr;
+    }
+  }
+
+  testGetAllNumbersFromTheString()
+  {
+    console.log(this.getAllNumbersFromTheString("05-04-2024", 0, false));
+  }
+
+  //SPLIT METHODS
+
+  //precondition: mystring and mydelim indexs come from the same string and correspond
+  mySplit(mystr, mydlimis, mydelimlens)
+  {
+    //console.log("INSIDE OF MY-SPLIT():");
+    //console.log("mystr = " + mystr);
+    //console.log("mydlimis = ", mydlimis);
+    //console.log("mydelimlens = ", mydelimlens);
+    this.bothListsMustBeTheSameSize(mydlimis, mydelimlens, "mydlimis", "mydelimlens");
+
+    let retarr = [];
+    if (this.isLetEmptyNullOrUndefined(mydlimis)) retarr.push(mystr);
+    else
+    {
+      for (let n = 0; n < mydelimlens.length; n++)
+      {
+        this.letmustbeanumber(mydelimlens[n], "mydelimlens[" + n + "]");
+        if (mydelimlens[n] < 0)
+        {
+          throw new Error("invalid length (" + mydelimlens[n] + ") found for the delimeter!");
+        }
+        //else;//do nothing
+      }
+
+      for (let n = 0; n < mydlimis.length; n++)
+      {
+        if (n === 0)
+        {
+          let fpart = mystr.substring(0, mydlimis[0]);
+          if (this.isLetEmptyNullOrUndefined(fpart));
+          else retarr.push(fpart);
+        }
+        else
+        {
+          //console.log("si = " + (mydlimis[n - 1] + mydelimlens[n - 1]));
+          //console.log("ei = " + mydlimis[n]);
+          //console.log(mystr.substring(mydlimis[n - 1] + mydelimlens[n - 1], mydlimis[n]));
+          let fpart = mystr.substring(mydlimis[n - 1] + mydelimlens[n - 1], mydlimis[n]);
+          if (this.isLetEmptyNullOrUndefined(fpart));
+          else retarr.push(fpart);
+        }
+        if (n + 1 === mydlimis.length)
+        {
+          let fpart = mystr.substring(mydlimis[n] + mydelimlens[n]);
+          if (this.isLetEmptyNullOrUndefined(fpart));
+          else retarr.push(fpart);
+        }
+        //else;//do nothing
+      }
+    }
+    //console.log(retarr);
+    return retarr;
+  }
+  mySplitMain(mystr, mydlimis, cdelimlen)
+  {
+    if (this.isLetUndefinedOrNull(mydlimis)) return [mystr];
+    else return this.mySplit(mystr, mydlimis, mydlimis.map((val) => cdelimlen));
+  }
+
+  //removes all of the delimeter from the string and combines the remaining parts into a new string
+  mySplitAndJoin(delimstr, mystr)
+  {
+    let mydelimis = this.getAllIndexesOf(delimstr, mystr, false);
+    //often not found in any format, so a shortcut might be safe
+    let mydelimsplitarr = this.mySplitMain(mystr, mydelimis, delimstr.length);
+    //console.log("mydelimsplitarr = " + mydelimsplitarr);
+
+    let nwfmtstr = mydelimsplitarr.join("");
+    //console.log("nwfmtstr = " + nwfmtstr);
+
+    return nwfmtstr;
+  }
+
+  replaceAllOfAWithBOnTheString(mystr, qstr, repstr)
+  {
+    if (this.isLetEmptyNullOrUndefined(mystr)) return null;
+    else
+    {
+      if (this.isLetEmptyNullOrUndefined(qstr)) return mystr;
+      else
+      {
+        if (this.isLetUndefinedOrNull(repstr)) return mystr.split(qstr).join("");
+        else return ((qstr === repstr) ? mystr : mystr.split(qstr).join(repstr));
+      }
+    }
+  }
+
+  testMySplit()
+  {
+    let mylwrtxt = "this is a very long string of text with data and numbers!";
+    //              0123456789012345678901234567890123456789012345678901234567
+    //              0         1         2         3         4         5
+    //console.log(this.mySplitMain(mylwrtxt, [4, 9, 19, 29, 39, 48], -1));
+    //error invalid delimeter length
+    console.log(this.mySplit(mylwrtxt, [4, 9, 19, 29, 39, 48], [2, 1, 1, 3, 1, 2]));
+    console.log(this.mySplitMain(mylwrtxt, [4, 9, 19, 29, 39, 48], 0));
+    console.log(this.mySplitMain(mylwrtxt, [4, 9, 19, 29, 39, 48], 1));
+    console.log(this.mySplitAndJoin(" ", mylwrtxt));
+    //this.mySplitMain(mylwrtxt, all indexes of delimeter, length of delimeter)
+    console.log(this.mySplitAndJoin("z", mylwrtxt));
+    console.log(mylwrtxt.split("z"));
+    console.log(mylwrtxt.split(" "));
+    console.log(mylwrtxt.split(" ").join(""));
+  }
+
   getAllIndexesOf(qstr, mystr, offset = 0)
   {
     //console.log("qstr = " + qstr);

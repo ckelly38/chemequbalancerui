@@ -2029,6 +2029,14 @@ class Matrices
         console.log(this.SolveViaMatrixInverse(otherm, [5, 7, 9], usenums));
         let waterm = [[2, 0, -2], [0, 2, -1], [1, 0, 0]];
         console.log(this.SolveViaMatrixInverse(waterm, [0, 0, 1], usenums));
+        let myotherm = [[2, 0, 0, -1, 0, 0, 0], 
+            [2, 0, -1, 0, 0, 0, 0],
+            [6, 0, -3, 0, 0, 0, 0],
+            [0, 1, -1, 0, 0, 0, 0],
+            [0, 1, 0, -1, 1, 0, 0],
+            [1, 0, 0, 0, 0, 2, 0],
+            [0, 2, 0, 0, 0, 0, 3]];
+        console.log(this.SolveViaMatrixInverse(myotherm, [0, 0, 0, 0, 0, 0, 1], usenums));
         throw new Error("NOT DONE YET...!");
     }
 

@@ -26,9 +26,10 @@ function App() {
   let [lockedbases, setLockedBases] = useState(false);
   let [areallequsbalanced, setAllEqusBalanced] = useState(true);
   let [balerrfnd, setBalErrorFound] = useState(false);
+  let [mytextequ, setMyTextEqu] = useState("");
   const cc = new commonclass();
   
-  let runmtests = false;
+  let runmtests = true;
   if (runmtests)
   {
     Matrices.testDoSomeOpOnVals();
@@ -519,6 +520,8 @@ function App() {
     return mydatarwsontble;
   }
 
+  //NOT DONE YET PROBLEMS WITH SOME EQUATIONS LIKE
+  //AGNO3 + KCL -> KNO3 + AGCl (balanced by itself, but set first LC=2, then this fails)
   function genMatrixAndAnsMatrix(mydatrws)
   {
     console.log("mydatrws = ", mydatrws);
@@ -535,9 +538,9 @@ function App() {
     let mynwstrm = mydatrws.map((crwarr, rindx) => {
       let mynwarr = [];
       crwarr.forEach((val, cindx) => {
-        //console.log("cindx = ", cindx);
-        //console.log("val = " + val);
-        //console.log("myequri = " + myequri);
+        console.log("cindx = ", cindx);
+        console.log("val = " + val);
+        console.log("myequri = " + myequri);
         if (cindx === 0);
         else
         {
@@ -549,7 +552,8 @@ function App() {
             {
               if (myequri < cindx)
               {
-                mynwarr.push((val.charAt(0) === '-') ? val.substring(1) : "-" + val);
+                if (val === "0") mynwarr.push("0");
+                else mynwarr.push((val.charAt(0) === '-') ? val.substring(1) : "-" + val);
               }
               else throw new Error("case should have already been handled!");
             }
@@ -558,9 +562,91 @@ function App() {
       });
       return mynwarr;
     });
+    //may not display correct results
+    console.log("INIT mynwstrm = ", mynwstrm);
+
+    let mydims = Matrices.dimensions(mynwstrm);
+    console.log("mydims = ", mydims);
+
+    let issqrm = true;
+    let dimsdiff = 0;
+    let hasmorecols = false;
+    let hasmorerows = false;
+    if (mydims.length < 3)
+    {
+      if (mydims.length === 2)
+      {
+        if (mydims[0] === mydims[1]);
+        else
+        {
+          if (mydims[0] < mydims[1])
+          {
+            dimsdiff = mydims[1] - mydims[0];
+            hasmorecols = true;
+            hasmorerows = false;
+          }
+          else
+          {
+            dimsdiff = mydims[0] - mydims[1];
+            hasmorecols = false;
+            hasmorerows = true;
+          }
+          issqrm = false;
+        }
+      }
+      else
+      {
+        if (mydims[0] === 1);
+        else issqrm = false;
+      }
+    }
+    else throw new Error("invalid dimensions found and used for the matrix!");
+    if (issqrm);
+    else console.warn("this is not a square matrix!");
+    console.log("hasmorecols = " + hasmorecols);
+    console.log("hasmorerows = " + hasmorerows);
+    console.log("dimsdiff = " + dimsdiff);
+
+    //if the number of rows is less than the number of columns
+    //IE less equations than unknowns, we need more equations
+    //in this case add a row with 1 and the rest 0s for each of the diff
+    //then set equal to 1 and the ans will all have 0s other than this one
+    //if it is more than one, do that for the first one, then for the second one 0 1 the rest 0s
+    //and the answ will have all 0s other than these which will have 1s or maybe inc?
+    //
+    //if the number of cols is less than the number of rows
+    //IE less unknowns than equations
+    //we can remove x number of equations as needed and risk the determinant of zero
+    //OR we can add cols as needed to get the determinant to not be zero
+    //however, on these cols, we want the result to be zero or to cancel themselves or to be equal
+    //but enough to get a non-zero determinant
+
+    //do something here to attempt to correct the dimensions and turn it into a square matrix
+    console.error("NEED TO DO SOMETHING HERE TO FIX THE GENERATION OF THE MATRIX!");
+
     let myansstrm = mynwstrm.map((val) => ["0"]);
-    mynwstrm.push(mynwstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
-    myansstrm.push(["1"]);
+    if (issqrm);
+    else
+    {
+      //our initial matrix for: AgNO3 + KCl -> KNO3 + AgCl
+      //(we made the first LC 2, note equ with all LCs = 1 is balanced)
+      //RULE: you must ignore all LCs when generating the matrix for balancing
+      //
+      //AgNO3 + KCl + X -> KNO3 + AgCl + X
+      //
+      //NO CLUE IN THIS CASE
+      //
+      //
+      //H2 + O2 -> H20
+      //[2 0 -2]
+      //[0 2 -1]
+      //
+      //to that add
+      //[1 0 0]
+
+      mynwstrm.push(mynwstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
+      myansstrm.push(["1"]);
+    }
     console.log("mynwstrm = ", mynwstrm);
     console.log("myansstrm = ", myansstrm);
 
@@ -1088,6 +1174,511 @@ function App() {
     </div>);
   }
 
+  function getFinalIndexesOfWithAndNoSpaces(myqrynospcs, mystr)
+  {
+    const myoqry = " " + myqrynospcs + " ";
+    let myindxswithspcs = cc.getAllIndexesOf(myoqry, mystr, 0);
+    let myindxsnospcs = cc.getAllIndexesOf(myqrynospcs, mystr, 0);
+    console.log("myindxswithspcs = ", myindxswithspcs);
+    console.log("myindxsnospcs = ", myindxsnospcs);
+
+    let myindxsonlyswithspc = null;
+    let finindxs = null;
+    let finindxslens = null;
+    if (cc.isLetEmptyNullOrUndefined(myindxsnospcs));
+    else
+    {
+      myindxsonlyswithspc = myindxsnospcs.map((mpval) => {
+        if (cc.isLetEmptyNullOrUndefined(myindxswithspcs)) return false;
+        if (mpval < 0 || mystr.length - 1 < mpval) return false;
+        for (let k = 0; k < myindxswithspcs.length; k++)
+        {
+          if (myindxswithspcs[k] + 1 === mpval) return true;
+          //else;//do nothing
+        }
+        return false;
+      });
+      console.log("myindxsonlyswithspc = ", myindxsonlyswithspc);
+
+      finindxs = myindxsnospcs.map((pval, mpi) => {
+        if (myindxsonlyswithspc[mpi]) return pval - 1;
+        else return pval;
+      });
+      finindxslens = myindxsnospcs.map((pval, mpi) => {
+        if (myindxsonlyswithspc[mpi]) return myqrynospcs.length + 2;
+        else
+        {
+          if (pval < 0 || mystr.length - 1 < pval) return 0;
+          else return myqrynospcs.length;
+        }
+      });
+    }
+    console.log("myindxsonlyswithspc = ", myindxsonlyswithspc);
+    console.log("finindxs = ", finindxs);
+    console.log("finindxslens = ", finindxslens);
+
+    return {"finindxs": finindxs, "finindxslens": finindxslens,
+      "myindxsonlyswithspc": myindxsonlyswithspc, "myindxswithspcs": myindxswithspcs,
+      "myindxsnospcs": myindxsnospcs, "myqrynospcs": myqrynospcs, "myoqry": myoqry, "mystr": mystr};
+  }
+
+  function getElemBasesFromSectStr(sectstr, sectstri, psi)
+  {
+    //now get my elements and bases for this string
+    console.log("sectstr = " + sectstr);
+    console.log("sectstri = " + sectstri);
+    console.log("psi = " + psi);
+
+    if (sectstri < 0 || psi < 0) throw new Error("sectstri and psi must be at least 0!");
+    //else;//do nothing
+
+    const isreactant = (sectstri < psi);
+    console.log("isreactant = " + isreactant);
+
+    //the capital letters indicate the start of a new element
+    //the lowercase letters are part of the element
+    //use mylower and myislower and myupper and myisupper methods for casing
+    //use the isLetter method
+    //
+    //if it is a digit, then it is a base or starting lc
+    //immediately starting the string can only be a capital letter (no lc num val) or
+    //(a digit if lc num val is present only)
+    //if not then not valid and error out
+    //the string will not include spaces or tabs or new lines etc.
+
+    //the num corresponds with the sectstri
+    //specifically num = sectstri + 1 if and only if sectstri < psi
+    //else num = sectstri - psi + 1
+    //the id string is generated by r or p num _ how many in that reactant
+    //the num is the number overall or current reactant number
+    //the only one we cannot remove is the first reactant and the first product
+    //let initrobj = {"id": "r1_0", "element": "", "base": 1, "isreactant": true, "num": 1,
+    //"canrem": false};
+    //initrlcobj = {"num": 1, "isreactant": true, "lcval": 1};
+    const rorpnum = ((sectstri < psi) ? sectstri + 1 : sectstri - psi + 1);
+    console.log("rorpnum = " + rorpnum);
+
+    const myidbasestr = (isreactant ? "r" : "p") + rorpnum + "_";
+    console.log("myidbasestr = " + myidbasestr);
+
+    //if the first character of the section string is a digit, then get the number
+    //this number is the leading coefficient value otherwise use 1.
+    let mylcval = 1;
+    let islcvalonstr = false;
+    if (cc.isDigit("" + sectstr.charAt(0)))
+    {
+      //get the number here...
+      islcvalonstr = true;
+      mylcval = cc.getNumGivenStartIndex(sectstr, 0, false);
+    }
+    else
+    {
+      //mylcval = 1
+      if (cc.myisupper("" + sectstr.charAt(0)));
+      else throw new Error("invalid starting character found and used here!");
+    }
+    if (mylcval < 1) mylcval = 1;
+    //else;//do nothing
+    let myinitrlcobj = {"num": rorpnum, "isreactant": isreactant, "lcval": mylcval};
+    console.log("islcvalonstr = " + islcvalonstr);
+    console.log("myinitrlcobj = ", myinitrlcobj);
+
+    let elemsis = [];
+    for (let i = 0; i < sectstr.length; i++)
+    {
+      if (cc.isalnum("" + sectstr.charAt(i)))
+      {
+        if (cc.isDigit("" + sectstr.charAt(i)) || sectstr.charAt(i) === ' ');
+        else
+        {
+          if (cc.myisupper("" + sectstr.charAt(i))) elemsis.push(i);
+          //else;//do nothing
+        }
+      }
+      else throw new Error("invalid character found on the string!");
+    }
+    console.log("elemsis = ", elemsis);
+    
+    let elemeis = elemsis.map((val) => {
+      if (val < 0) return val;
+      else
+      {
+        for (let i = val; i < sectstr.length; i++)
+        {
+          //console.log("sectstr.charAt(" + i + ") = " + sectstr.charAt(i));
+          if (cc.isLetter("" + sectstr.charAt(i)))
+          {
+            if (cc.myisupper("" + sectstr.charAt(i)))
+            {
+              if (val === i);
+              else return i;
+            }
+            //else;//do nothing lowercase letter
+          }
+          else return i;
+        }
+        return sectstr.length;
+      }
+    });
+    console.log("elemeis = ", elemeis);
+
+    let baseeis = [];
+    let basesis = elemeis.map((val, indx) => {
+      //get the end index if the next character is a digit, this is a base start index
+      if (val < sectstr.length)
+      {
+        if (cc.isDigit("" + sectstr.charAt(val)))
+        {
+          //get the end index
+          let mybei = -1;
+          for (let i = val; i < sectstr.length; i++)
+          {
+            if (cc.isDigit("" + sectstr.charAt(i)));
+            else
+            {
+              mybei = i;
+              break;
+            }
+          }
+          if (mybei < 0) mybei = sectstr.length;
+          //else;//do nothing
+          baseeis.push(mybei);
+          return val;
+        }
+        else
+        {
+          baseeis.push(-1);
+          return -1;
+        }
+      }
+      else
+      {
+        baseeis.push(-1);
+        return -1;
+      }
+    });
+    console.log("basesis = ", basesis);
+    console.log("baseeis = ", baseeis);
+
+    //do other stuff to generate the returned objects...
+    let myelembasearrfequ = elemsis.map((val, indx) => {
+      let mybasenum = 1;
+      if (basesis[indx] < 0 || sectstr.length - 1 < basesis[indx]);
+      else
+      {
+        let basenumstr = sectstr.substring(basesis[indx], baseeis[indx]);
+        mybasenum = Number(basenumstr);
+      }
+      let mycanrem = (!(rorpnum === 1 && indx < 1));
+      let myelmobj = {"id": myidbasestr + indx, "element": sectstr.substring(val, elemeis[indx]),
+        "base": mybasenum, "isreactant": isreactant, "num": rorpnum, "canrem": mycanrem};
+      return myelmobj;
+    });
+    console.log("myelembasearrfequ = ", myelembasearrfequ);
+
+    return {"nwelembasearr": myelembasearrfequ, "elemsis": elemsis, "elemeis": elemeis,
+      "basesis": basesis, "baseeis": baseeis, "mylcobj": myinitrlcobj, "lcpresent": islcvalonstr,
+      "sectstr": sectstr, "sectstri": sectstri, "psi": psi
+    };
+  }
+
+  function setMyInitialStateFromEqu(mynwequtxt)
+  {
+    //take the equtxt and generate the lcs objects
+    //all we need to do is take the num is, these are the bases unless in front of plus
+    //or the first one or in front of the arrow
+    //let us say we have AgNO3 in this case, case matters
+    //uppercase starts their own elements + indicates new rorp -> starts of ps
+    //start of string = start of rs
+    //spaces will be ignored
+    console.log("mynwequtxt = " + mynwequtxt);
+    //get all indexes of +s
+    //get the arrow index
+    //it will either be space + space or just +
+    //it will either be space -> space or just ->
+
+    let myplusindxsobj = getFinalIndexesOfWithAndNoSpaces("+", mynwequtxt);
+    console.log("myplusindxsobj = ", myplusindxsobj);
+
+    let myarrowindxsobj = getFinalIndexesOfWithAndNoSpaces("->", mynwequtxt);
+    console.log("myplusindxsobj = ", myplusindxsobj);
+    console.log("myarrowindxsobj = ", myarrowindxsobj);
+    
+    //now we have our plusses as the delimeters
+    //we have their lengths for the delimeters
+    //make sure that one and only one arrow is found and the index is not invalid
+    //plusses do not have to be found
+
+    cc.letMustNotBeEmpty(myarrowindxsobj.finindxs);
+    if (1 < myarrowindxsobj.finindxs.length)
+    {
+      //invalid and should not set state should not continue
+      console.error("the equation is not valid!");
+      return null;
+    }
+    //else;//do nothing
+    let myarrowindx = myarrowindxsobj.finindxs[0];
+    if (myarrowindx < 0 || mynwequtxt.length - 1 < myarrowindx)
+    {
+      //invalid and should not set state should not continue
+      console.error("the arrow index was invalid!");
+      console.error("the equation is not valid!");
+      return null;
+    }
+    //else;//do nothing
+
+    let numplusbfrarrow = 0;
+    if (cc.isLetEmptyNullOrUndefined(myplusindxsobj.finindxs));
+    else
+    {
+      //need to go over these here...
+      for (let k = 0; k < myplusindxsobj.finindxs.length; k++)
+      {
+        if (myplusindxsobj.finindxs[k] < myarrowindx)
+        {
+          if (myplusindxsobj.finindxslens[k] === myplusindxsobj.myqrynospcs.length ||
+            myplusindxsobj.finindxslens[k] === myplusindxsobj.myqrynospcs.length + 2)
+          {
+            numplusbfrarrow++;
+          }
+          //else;//do nothing length is not valid
+        }
+        //else;//do nothing
+      }
+    }
+    console.log("numplusbfrarrow = " + numplusbfrarrow);
+
+    //if numplusbfrarrow is zero then first delim is arrow and only one index is before it
+    //else if more than zero then numsectsbeforearrow = numplusbfrarrow + 1
+    //if secti < numsectsbfrarw then reactant else product
+    const numsectsbfrarw = numplusbfrarrow + 1;
+    console.log("numsectsbfrarw = " + numsectsbfrarw);
+    
+
+    //now we know our delimeters are valid
+    //we now need to combine them
+    //the arrows will go somewhere in the middle of all of the plusses if there are plusses
+    //then we will have the delimeters and their lengths ready
+
+    //now all we have to do is split the string at those delimeters
+    //then each section will be of element and bases
+    //we will also need to know where the arrow is
+    //because this indicates where the products start
+    //
+    //then we can use use a case check to get the elements
+    //the bases if not existing will be 1
+    //otherwise they are what is given
+    //once we generate all of our state variables we set it
+    
+    
+    //note on the final list only one arrow must be present
+    //now take these two arrays figure out where all of them are
+    //the arrow indexs will be inside of the spc arrow spc ones
+    //the arrow indexes will need to be adjusted to get the start of that
+    //once we take this, we will be able to build our delims
+    //then we can split it out and get the elements from a sections
+
+    let mydelimis = [];
+    let mydelimlens = [];
+    if (cc.isLetEmptyNullOrUndefined(myplusindxsobj.finindxs))
+    {
+      mydelimis = myarrowindxsobj.finindxs;
+      mydelimlens = myarrowindxsobj.finindxslens;
+    }
+    else
+    {
+      if (myplusindxsobj.finindxs.length < 2)
+      {
+        if (myplusindxsobj.finindxs[0] < myarrowindx)
+        {
+          mydelimis.push(myplusindxsobj.finindxs[0]);
+          mydelimlens.push(myplusindxsobj.finindxslens[0]);
+          //push arrow
+          mydelimis.push(myarrowindx);
+          mydelimlens.push(myarrowindxsobj.finindxslens[0]);
+        }
+        else
+        {
+          //push arrow
+          mydelimis.push(myarrowindx);
+          mydelimlens.push(myarrowindxsobj.finindxslens[0]);
+          mydelimis.push(myplusindxsobj.finindxs[0]);
+          mydelimlens.push(myplusindxsobj.finindxslens[0]);
+        }
+      }
+      else
+      {
+        myplusindxsobj.finindxs.forEach((val, indx) => {
+          if (val < myarrowindx)
+          {
+            //val is before arrow
+            if (indx + 1 < myplusindxsobj.finindxs.length)
+            {
+              if (myarrowindx < myplusindxsobj.finindxs[indx + 1])
+              {
+                //val < arrow < nextval
+                //push val then arrow
+                mydelimis.push(val);
+                mydelimlens.push(myplusindxsobj.finindxslens[indx]);
+                //push arrow
+                mydelimis.push(myarrowindx);
+                mydelimlens.push(myarrowindxsobj.finindxslens[0]);
+              }
+              else
+              {
+                //val < nextval < arrow
+                //ignore arrow only push val
+                mydelimis.push(val);
+                mydelimlens.push(myplusindxsobj.finindxslens[indx]);
+              }
+            }
+            else
+            {
+              //push val, then arrow
+              mydelimis.push(val);
+              mydelimlens.push(myplusindxsobj.finindxslens[indx]);
+              //push arrow
+              mydelimis.push(myarrowindx);
+              mydelimlens.push(myarrowindxsobj.finindxslens[0]);
+            }
+          }
+          else
+          {
+            //myarrowindx < val
+            mydelimis.push(val);
+            mydelimlens.push(myplusindxsobj.finindxslens[indx]);
+          }
+        });
+      }
+    }
+    console.log("mydelimis = ", mydelimis);
+    console.log("mydelimlens = ", mydelimlens);
+
+    let mysectstrs = cc.mySplit(mynwequtxt, mydelimis, mydelimlens);
+    console.log("mysectstrs = ", mysectstrs);
+
+    let myelembasefequstrdataobjs = mysectstrs.map((val, secti) =>
+      getElemBasesFromSectStr(val, secti, numsectsbfrarw));
+    console.log("myelembasefequstrdataobjs = ", myelembasefequstrdataobjs);
+
+    //build the final elembasearr
+    //build the lcs
+    //then set the new state
+    let myfinnwlcs = [];
+    let myfinnwelembasearr = [];
+    myelembasefequstrdataobjs.forEach((myobj, mindx) => {
+      console.log("myobj = ", myobj);
+      //console.log(myobj.nwelembasearr);
+      //console.log(myobj.mylcobj);
+      myobj.nwelembasearr.forEach((elembobj) => myfinnwelembasearr.push(elembobj));
+      myfinnwlcs.push(myobj.mylcobj);
+    });
+    console.log("myfinnwlcs = ", myfinnwlcs);
+    console.log("myfinnwelembasearr = ", myfinnwelembasearr);
+
+    setElembaseArr(myfinnwelembasearr);
+    setMyLCs(myfinnwlcs);
+    setMyTextEqu(mynwequtxt);
+    if (lockedbases);
+    else setLockedBases(true);
+  }
+
+  function genEquTextFrom(elembsarr, lcsarr)
+  {
+    //take the lcs and the elembsarr and generate the equtext
+    let myequ = "";
+    let incbaseone = false;//userpref
+    let inclcone = false;//userpref
+    //if the elembasearr is guaranteed in order generating the string is easy
+    let mysrtedembsarr = elembsarr.map((valobj) => valobj);
+    mysrtedembsarr = mysrtedembsarr.sort((a, b) => {
+      if (a.isreactant === b.isreactant)
+      {
+        //both reactants or both products
+        //if the a num is less than b num a is less than b
+        if (a.num === b.num)
+        {
+          //the number is the same
+          //get the number from the id string after the underscore
+          //this is an index and these will not be the same
+          let aidindxnum = Number(a.id.substring(a.id.indexOf("_") + 1));
+          let bidindxnum = Number(b.id.substring(b.id.indexOf("_") + 1));
+          if (aidindxnum === bidindxnum) return 0;//should never happen
+          else return ((aidindxnum < bidindxnum) ? -1 : 1);
+        }
+        else return ((a.num < b.num) ? -1 : 1);//the number is not the same
+      }
+      else return ((a.isreactant) ? -1 : 1);
+    });
+    console.log("mysrtedembsarr = ", mysrtedembsarr);
+    console.log("lcsarr = ", lcsarr);
+
+    //need to handle the LCS
+    let addlc = true;
+    mysrtedembsarr.forEach((valobj, mindx) => {
+      console.log("valobj = ", valobj);
+      //{"id": "r1_0", "element": "", "base": 1, "isreactant": true, "num": 1,
+      //"canrem": false}
+      if (addlc)
+      {
+        //do something here for the lcs
+        //get the lc val for the reactant and num
+        let mylcobj = null
+        for (let n = 0; n < lcsarr.length; n++)
+        {
+          if (lcsarr[n].isreactant === valobj.isreactant)
+          {
+            if (lcsarr[n].num === valobj.num)
+            {
+              mylcobj = lcsarr[n];
+              break;
+            }
+            //else;//do nothing
+          }
+          //else;//do nothing
+        }
+        console.log("mylcobj = ", mylcobj);
+        cc.letMustBeDefinedAndNotNull(mylcobj, "mylcobj");
+
+        if (mylcobj.lcval === 1)
+        {
+          if (inclcone) myequ += "1";
+          //else;//do nothing
+        }
+        else myequ += "" + mylcobj.lcval;
+        addlc = false;
+      }
+      //else;//do nothing
+      let myresstr = "" + valobj.element;
+      if (valobj.base === 1)
+      {
+        if (incbaseone) myresstr += "1";
+        //else;//do nothing
+      }
+      else myresstr += valobj.base;
+      myequ += "" + myresstr;
+      if (mindx + 1 < mysrtedembsarr.length)
+      {
+        if (mysrtedembsarr[mindx + 1].isreactant === valobj.isreactant)
+        {
+          if (mysrtedembsarr[mindx + 1].num === valobj.num);
+          else
+          {
+            myequ += " + ";
+            addlc = true;
+          }
+        }
+        else myequ += " -> ";
+      }
+      //else;//do nothing
+      console.log("NEW myequ = " + myequ);
+    });
+    console.log("FINAL myequ = " + myequ);
+
+    return myequ;
+  }
+
+
   console.log("myelembasearr = ", myelembasearr);
   console.log("mylcs = ", mylcs);
   console.log("areallequsbalanced = " + areallequsbalanced);
@@ -1095,6 +1686,7 @@ function App() {
 
   let mytopdataobj = getTopDataObject(myelembasearr);
   console.log("mytopdataobj = ", mytopdataobj);
+  console.log("mytextequ = " + mytextequ);
   
   let useminv = true;
   return (<div>
@@ -1102,11 +1694,22 @@ function App() {
       <div>{genControlButtons(myelembasearr, true)}
         <span key={"equarrowa"} style={{display: "inline-block", fontSize: "20px"}}>{" -> "}</span>
           {genControlButtons(myelembasearr, false)}
-        <button style={{marginLeft: "10px"}} onClick={(event) => setLockedBases(!lockedbases)}>
+        <button style={{marginLeft: "10px"}} onClick={(event) => {
+          if (lockedbases);
+          else setMyTextEqu(genEquTextFrom(myelembasearr, mylcs));
+          setLockedBases(!lockedbases);
+        }}>
           {lockedbases ? "un": ""}lock bases!</button>
         {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
           (<button onClick={(event) => solveTheSystem(genMatrixAndAnsMatrix(mytopdataobj.mydatrws),
             useminv)}>Solve It!</button>))}
+      </div>
+      <div id="equalltextinput">
+        <textarea id="myequinput" name="myequinput" defaultValue={genEquTextFrom(myelembasearr, mylcs)}
+          onBlur={(event) => {
+            let mynwequtxt = event.target.value;
+            setMyInitialStateFromEqu(mynwequtxt);
+          }} />
       </div>
       <div id="equ" style={{display: "inline-block"}}>
         {genReactantsOrProductsDivs(myelembasearr, true)}
