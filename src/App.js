@@ -29,7 +29,7 @@ function App() {
   let [mytextequ, setMyTextEqu] = useState("");
   const cc = new commonclass();
   
-  let runmtests = true;
+  let runmtests = false;
   if (runmtests)
   {
     Matrices.testDoSomeOpOnVals();
@@ -346,7 +346,7 @@ function App() {
   }
 
   function getDataForAnEquationOrCountRow(hnm, elem, mhindx, myelsis, myeleis, mybasis, mybaeis,
-    useequrows, inconetimes=false)
+    useequrows, usemtrxrows, inconetimes=false)
   {
     console.log("hnm = " + hnm);
     console.log("mhindx = " + mhindx);
@@ -425,7 +425,11 @@ function App() {
           if (mybasenumstr === "1") datastr = (inconetimes ? (mybasenumstr + " * " + lcnm) : lcnm);
           else datastr = mybasenumstr + " * " + lcnm;
         }
-        else datastr = "" + ((mybasenumstr === "1") ? lcval : (Number(mybasenumstr) * lcval));
+        else
+        {
+          if (usemtrxrows) datastr = "" + ((mybasenumstr === "1") ? "1" : (Number(mybasenumstr)));
+          else datastr = "" + ((mybasenumstr === "1") ? lcval : (Number(mybasenumstr) * lcval));
+        }
       }
       console.log("datastr = " + datastr);
 
@@ -434,9 +438,10 @@ function App() {
   }
 
   function genEquationOrCountRows(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
-    useequrows, inconetimes=false)
+    useequrows, usemtrixrows, inconetimes=false)
   {
     cc.letMustBeBoolean(useequrows, "useequrows");
+    cc.letMustBeBoolean(usemtrixrows, "usemtrixrows");
     cc.letMustBeBoolean(inconetimes, "inconetimes");
 
     //the first col is the element, then the reactants, then =, then the products
@@ -458,7 +463,7 @@ function App() {
         console.log("mybaeis[" + mhindx + "] = ", mybaeis[mhindx]);
         
         let datastr = getDataForAnEquationOrCountRow(hnm, elem, mhindx,
-          myelsis, myeleis, mybasis, mybaeis, useequrows, inconetimes);
+          myelsis, myeleis, mybasis, mybaeis, useequrows, usemtrixrows, inconetimes);
         console.log("datastr = " + datastr);
         
         const colnmtype = ((hnm === "->") ? "equals" : hnm);
@@ -480,9 +485,10 @@ function App() {
   }
 
   function genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
-    useequrows, inconetimes=false)
+    useequrows, usemtrixrows, inconetimes=false)
   {
     cc.letMustBeBoolean(useequrows, "useequrows");
+    cc.letMustBeBoolean(usemtrixrows, "usemtrixrows");
     cc.letMustBeBoolean(inconetimes, "inconetimes");
 
     //the first col is the element, then the reactants, then =, then the products
@@ -503,7 +509,7 @@ function App() {
         console.log("mybaeis[" + mhindx + "] = ", mybaeis[mhindx]);
         
         let datastr = getDataForAnEquationOrCountRow(hnm, elem, mhindx,
-          myelsis, myeleis, mybasis, mybaeis, useequrows, inconetimes);
+          myelsis, myeleis, mybasis, mybaeis, useequrows, usemtrixrows, inconetimes);
         console.log("datastr = " + datastr);
         
         return datastr;
@@ -522,9 +528,20 @@ function App() {
 
   //NOT DONE YET PROBLEMS WITH SOME EQUATIONS LIKE
   //AGNO3 + KCL -> KNO3 + AGCl (balanced by itself, but set first LC=2, then this fails)
-  function genMatrixAndAnsMatrix(mydatrws)
+  function genMatrixAndAnsMatrix(mtopdatobj)
   {
+    console.log("mtopdatobj = ", mtopdatobj);
+    cc.letMustBeDefinedAndNotNull(mtopdatobj, "mtopdatobj");
+
+    const mydatrws = mtopdatobj.mtrixdatrws;
+    const myelembsarr = mtopdatobj.elembsarr;
+    const myuelems = mtopdatobj.myelems;
     console.log("mydatrws = ", mydatrws);
+    console.log("myelembsarr = ", myelembsarr);
+    console.log("myuelems = ", myuelems);
+    
+    cc.letMustNotBeEmpty(myelembsarr, "myelembsarr");
+    cc.letMustNotBeEmpty(myuelems, "myuelems");
     cc.letMustNotBeEmpty(mydatrws, "mydatrws");
 
     //filter out the elements and anything after the equals stick a - infront of it
@@ -538,9 +555,9 @@ function App() {
     let mynwstrm = mydatrws.map((crwarr, rindx) => {
       let mynwarr = [];
       crwarr.forEach((val, cindx) => {
-        console.log("cindx = ", cindx);
-        console.log("val = " + val);
-        console.log("myequri = " + myequri);
+        //console.log("cindx = ", cindx);
+        //console.log("val = " + val);
+        //console.log("myequri = " + myequri);
         if (cindx === 0);
         else
         {
@@ -632,6 +649,16 @@ function App() {
       //(we made the first LC 2, note equ with all LCs = 1 is balanced)
       //RULE: you must ignore all LCs when generating the matrix for balancing
       //
+      //Ag: [1 0 0 -1]
+      //N:  [1 0 -1 0] -| DROP THESE TWO ROWS
+      //O:  [3 0 -3 0] -|
+      //K:  [0 1 -1 0]
+      //Cl: [0 1 0 -1]
+      //   *[1 0 0 0] THEN SET EQUAL TO DOWN [0, 0, 0, 1] THEN IT WILL YEILD THE CORRECT ANSWERS
+      //
+      //IF I DROP ALL NO3s IN THIS, THEN ADD 1 followed by k zeros and set equal to k zeros and a 1
+      //THEN IT YIELDS THE CORRECT ANSWERS. PROVIDED THE LCS ARE IGNORED.
+      //
       //AgNO3 + KCl + X -> KNO3 + AgCl + X
       //
       //NO CLUE IN THIS CASE
@@ -643,6 +670,173 @@ function App() {
       //
       //to that add
       //[1 0 0]
+
+      if (hasmorerows)
+      {
+        //need to drop to get COL - 1
+        //how to figure out which rows to drop
+        //if a molecule is treated as an element, IE not separated out
+        //then we drop the entire molecule THE ROWS THAT MAKE IT UP...
+        //for a molecule to be treated as an element it must remain in tact on the other side
+        //however, for it to be ruled out of the matrix, its parts must not be present anywhere else
+        //
+        //NOTE: ALTHOUGH OFTEN WRITTEN RIGHT NEXT TO EACH OTHER, THEY DO NOT HAVE TO BE.
+        //AgNO3 + KCl -> AgCl + KNO3
+        //NAgO3 + KCl -> AgCl + NKO3
+        //NAgO3 + ClK -> AgCl + NKO3
+        //NAgO3 + ClK -> ClAg + NKO3
+        //THE ABOVE EQUATIONS ARE THE SAME.
+        //HOWEVER:
+        //AgON3 + KCl -> AgCl + KNO3
+        //IS NOT THE SAME AS ABOVE BECAUSE AN ELEMENT AND A BASE GOT SPLIT UP WHICH IS ILLEGAL.
+        //
+        //THE NO3 IS A MOLECULE TECHNICALLY THE O3 IS A MOLECULE TOO
+        //BUT THE NO3 MOLECULE IS NOT BROKEN APART ON THE OTHER SIDE
+        //NOR IS IT ON THE SAME SIDE.
+        //NOR ARE THERE ANY OTHER PARTS OF IT PRESENT IN OTHER REACTANTS OR PRODUCTS.
+        //THEREFORE, THIS DOES NOT EFFECT THE LINEAR ALGEBRA WHATSOEVER AND CAN BE RULED OUT.
+
+        //FOR EACH UNIQUE ELEMENT ON THE EQUATION:
+        //IS THE EQUATION A COMPOSITION OR DECOMPOSITION? IE DOES ONE SIDE ONLY HAVE ONE?
+        //IF THE ANSWER IS YES, THEN NONE CAN BE SEPARATED OUT. ERROR OUT.
+        //IF THE ANSWER IS NO, THEN SOME MIGHT BE ABLE TO BE SEPARATED OUT.
+        //IS PRESENT ON MULTIPLE REACTANTS OR PRODUCTS?
+        //IF THE ANSWER IS NO, THEN THESE MIGHT BE ABLE TO BE SEPARATED OUT.
+        //IF THE ANSWER IS YES, THEN THESE CANNOT BE SEPARATED OUT.
+        //ON THE ONES THAT CAN STILL BE SEPARATED OUT:
+        //IF THE BASES ARE DIFFERENT, THEN THESE CANNOT BE SEPARATED OUT.
+        //OTHERWISE THEN THESE CAN BE SEPARATED OUT.
+        //AgNO3 + KCl -> AgCl + KNO3 (SWAP EQU)
+        //Ag: r1, p1
+        //N: r1, p2
+        //O: r1, p2
+        //K: r2, p2
+        //Cl: r2, p1
+
+        //H2 + O2 -> H2O (COMP/DECOM EQU)
+        //H: r1, p1
+        //O: r2, p1
+
+        //elembasearray has the information we want
+        //need the unique elements list
+        const iscompequ = (mtopdatobj.mxpnum === 1);
+        const isdecompequ = (mtopdatobj.mxrnum === 1);
+        console.log("iscompequ = " + iscompequ);
+        console.log("isdecompequ = " + isdecompequ);
+
+        if (iscompequ || isdecompequ)
+        {
+          //this is a compostion or decomposition equation
+          //less likely to produce this kind of matrix
+          //but if it does, we cannot solve it
+          //cannot remove any rows
+          let myerrmsg = "cannot solve due to zero determinant because cannot remove any row from " +
+            "the matrix and we have too many rows than cols!";
+          //console.error(myerrmsg);
+          throw new Error(myerrmsg);
+        }
+        //else;//do nothing
+        console.log("myelembsarr = ", myelembsarr);
+        console.log("myuelems = ", myuelems);
+
+        //now see if we may be able to drop it
+        let canpossiblydropit = [];
+        let numcandrop = 0;
+        let elembsobjsbyuelms = myuelems.map((val) => {
+          let mymollocs = [];
+          let isrfnd = false;
+          let ispfnd = false;
+          myelembsarr.forEach((elembobjval) => {
+            if (elembobjval.element === val)
+            {
+              mymollocs.push(elembobjval);
+              if (isrfnd);
+              else
+              {
+                if (elembobjval.isreactant) isrfnd = true;
+                //else;//do nothing
+              }
+              if (ispfnd);
+              else
+              {
+                if (elembobjval.isreactant);
+                else ispfnd = true;
+              }
+            }
+            //else;//do nothing
+          });
+          cc.letMustNotBeEmpty(mymollocs, "mymollocs");
+          if (mymollocs.length < 1) throw new Error("the array must have at least 2 items on it!");
+          else
+          {
+            if (isrfnd && ispfnd)
+            {
+              let initcandrop = (mymollocs.length === 2);
+              //can drop if the bases are the same and there are only two of them.
+              if (initcandrop)
+              {
+                initcandrop = (mymollocs[0].base === mymollocs[1].base);
+                if (initcandrop) numcandrop++;
+                //else;//do nothing
+              }
+              //else;//do nothing
+              canpossiblydropit.push(initcandrop);
+              return mymollocs;
+            }
+            else
+            {
+              throw new Error("at least one must be a reactant and at least one must be a product!");
+            }
+          }
+        });
+        console.log("elembsobjsbyuelms = ", elembsobjsbyuelms);
+        console.log("canpossiblydropit = ", canpossiblydropit);
+        console.log("numcandrop = " + numcandrop);
+
+        const numrwstodrop = mydims[0] - (mydims[1] - 1);
+        console.log("numrwstodrop = " + numrwstodrop);
+        console.log("OLD mynwstrm = ", mynwstrm);
+
+        //need to figure out which rows to drop
+        let mydrpris = [];
+        if (numcandrop === numrwstodrop)
+        {
+          //only add the indexes for the ones that are true
+          canpossiblydropit.forEach((ditval, ditindx) => {
+            if (ditval) mydrpris.push(ditindx);
+            //else;//do nothing
+          });
+        }
+        else if (numcandrop < numrwstodrop)
+        {
+          //the most we can drop are less than the number that we must drop
+          //so we cannot drop a certain amount of that
+          //maybe a very big problem here
+          throw new Error("we cannot drop the number of rows that we need to drop!");
+        }
+        else
+        {
+          //numrwstodrop < numcandrop
+          //the number that we need to drop is less than the number that we can drop
+          //this is good
+          //do we just drop the first k rows arbitrarily?
+          //-what if that yields a determinant of zero?
+          //-Do we go back to this matrix, and then choose different rows to drop and then resolve?
+        }
+        if (mydrpris.length === numrwstodrop);//safe to proceed
+        else throw new Error("we have not eliminated the correct number of rows!");
+
+        //once we have these...
+        mynwstrm = mynwstrm.filter((myarr, myrwi) => {
+          for (let k = 0; k < mydrpris.length; k++)
+          {
+            if (mydrpris[k] === myrwi) return false;
+            //else;//do nothing
+          }
+          return true;
+        });
+      }
+      //else;//do nothing
 
       mynwstrm.push(mynwstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
       myansstrm.push(["1"]);
@@ -1030,14 +1224,18 @@ function App() {
     //generate the data rows here...
     let inconetimes = false;//in the equations include 1 * lcnum if the base is 1
     let mydatrws = genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
-      false, inconetimes);
+      false, false, inconetimes);//useequrows, usematrixrows, inconetimes
     console.log("mydatrws = ", mydatrws);
+    
+    let mtrixdatrws = genDataOnEquationRowsOnly(myelems, hnames, myelsis, myeleis, mybasis, mybaeis,
+      false, true, inconetimes);//useequrows, usematrixrows, inconetimes
+    console.log("mtrixdatrws = ", mtrixdatrws);
 
     return {"elembsarr": elembsarr, "reactants": reactants, "products": products,
       "mxrnum": mxrnum, "mxpnum": mxpnum, "reactantsbynum": reactantsbynum,
       "productsbynum": productsbynum, "addifbaseisone": addifbaseisone, "hnames": hnames,
       "myelems": myelems, "myelsis": myelsis, "myeleis": myeleis, "mybasis": mybasis,
-      "mybaeis": mybaeis, "inconetimes": inconetimes, "mydatrws": mydatrws
+      "mybaeis": mybaeis, "inconetimes": inconetimes, "mydatrws": mydatrws, "mtrixdatrws": mtrixdatrws
     };
   }
 
@@ -1060,12 +1258,13 @@ function App() {
         <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
 
     //generate the data rows here...
+    const usemtrixrows = false;
     const myequrws = genEquationOrCountRows(mytopdataobj.myelems, mytopdataobj.hnames,
       mytopdataobj.myelsis, mytopdataobj.myeleis, mytopdataobj.mybasis, mytopdataobj.mybaeis,
-      true, mytopdataobj.inconetimes);//useequrws, inconetimes
+      true, usemtrixrows, mytopdataobj.inconetimes);//useequrws, usemtrixrows, inconetimes
     const mybalrws = genEquationOrCountRows(mytopdataobj.myelems, mytopdataobj.hnames,
       mytopdataobj.myelsis, mytopdataobj.myeleis, mytopdataobj.mybasis, mytopdataobj.mybaeis,
-      false, mytopdataobj.inconetimes);
+      false, usemtrixrows, mytopdataobj.inconetimes);
 
     return (<table style={{border: "1px solid black"}}>
       <thead style={{border: "1px solid black"}}>{myhrw}</thead>
@@ -1701,8 +1900,8 @@ function App() {
         }}>
           {lockedbases ? "un": ""}lock bases!</button>
         {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
-          (<button onClick={(event) => solveTheSystem(genMatrixAndAnsMatrix(mytopdataobj.mydatrws),
-            useminv)}>Solve It!</button>))}
+          (<button onClick={(event) => solveTheSystem(
+            genMatrixAndAnsMatrix(mytopdataobj), useminv)}>Solve It!</button>))}
       </div>
       <div id="equalltextinput">
         <textarea id="myequinput" name="myequinput" defaultValue={genEquTextFrom(myelembasearr, mylcs)}
