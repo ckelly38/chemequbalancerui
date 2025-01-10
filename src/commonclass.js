@@ -460,6 +460,195 @@ class commonclass {
     console.log(mylwrtxt.split(" ").join(""));
   }
 
+  //a permutation generator where each dial can have different mins and maxs
+  //they could also be the same
+  //returns a string array with numbers separated by spaces like so: 0 0, 0 1, 1 0, 1 1
+  //cdnum is dial num index which is the index on the maxs and the mins
+  //to call to start call with total num dials - 1: on the given example it will be called with 4 - 1 = 3
+  //let us say we have a min array all at 0
+  //let us say we have a max array like this: [1, 1, 2, 1]; the max for dial cdni=2 is 2
+  //the dial when written out will that will a b c d will be c dial
+  permutationGeneratorWithMinsAndMaxs(cdnum, minsperdials, maxsperdials, basestr="")
+  {
+    if (this.isLetUndefinedOrNull(basestr))
+    {
+      return this.permutationGeneratorWithMinsAndMaxs(cdnum, minsperdials, maxsperdials, "");
+    }
+    //else;//do nothing
+
+    //console.log("cdnum = " + cdnum);
+    //console.log("minsperdials = ", minsperdials);//in test case 4 0s: [0, 0, 0, 0]
+    //console.log("maxsperdials = ", maxsperdials);//in test case 2 1s a 2 and a 1 [1, 1, 2, 1]
+    //console.log("basestr = " + basestr);
+
+    this.letmustbeanumber(cdnum, "cdnum");
+    if (cdnum < 0) throw new Error("cdnum must be at least 0!");
+    //else;//do nothing
+
+    this.bothListsMustBeTheSameSize(minsperdials, maxsperdials, "minsperdials", "maxsperdials");
+    if (this.isLetEmptyNullOrUndefined(minsperdials)) return basestr;
+    //else;//do nothing
+
+    //error check maxs and mins and if there is a problem swap them
+    let neednwmxmns = false;
+    for (let n = 0; n < minsperdials.length; n++)
+    {
+      this.letmustbeanumber(minsperdials[n]);
+      this.letmustbeanumber(maxsperdials[n]);
+
+      if (maxsperdials[n] < minsperdials[n])
+      {
+        //need to create a new array and swap out the values then return with correct values enforced...
+        //if (neednwmxmns);
+        //else console.log("need new maxs and mins!");
+        neednwmxmns = true;
+      }
+      //else;//do nothing
+    }
+
+    if (neednwmxmns)
+    {
+      let nwmns = [];
+      let nwmxs = [];
+      for (let n = 0;  n < minsperdials.length; n++)
+      {
+        if (maxsperdials[n] < minsperdials[n])
+        {
+          nwmns.push(maxsperdials[n]);
+          nwmxs.push(minsperdials[n]);
+        }
+        else
+        {
+          nwmxs.push(maxsperdials[n]);
+          nwmns.push(minsperdials[n]);
+        }
+      }
+
+      return this.permutationGeneratorWithMinsAndMaxs(cdnum, nwmns, nwmxs, basestr);
+    }
+    //else;//do nothing safe to proceed
+    //console.log("after error checking!");
+
+    //3 2 1 0 DIAL NUMBERS:
+    //0 0 0 0
+    //0 0 0 1
+    //0 0 1 0
+    //0 0 1 1
+    //0 0 2 0
+    //0 0 2 1
+    //0 1 0 0
+    //0 1 0 1
+    //0 1 1 0
+    //0 1 1 1
+    //0 1 2 0
+    //0 1 2 1
+    //1 0 0 0
+    //1 0 0 1
+    //1 0 1 0
+    //1 0 1 1
+    //1 0 2 0
+    //1 0 2 1
+    //1 1 0 0
+    //1 1 0 1
+    //1 1 1 0
+    //1 1 1 1
+    //1 1 2 0
+    //1 1 2 1
+
+    //numdials is at least 2
+    //with 2
+    //0 0
+    //0 1
+    //1 0
+    //1 1
+    //
+    //with 3
+    //0 0 0
+    //0 0 1
+    //0 1 0
+    //0 1 1
+    //1 0 0
+    //1 0 1
+    //1 1 0
+    //1 1 1
+    
+    //how do we separate the dials, we use spaces
+    //take returned by the first dial 0, 1 prepend the first item of the second dial to it
+    //then prepend the nth item of the second dial to the returned by the first
+    //0 0, 0 1, 1 0, 1 1
+
+    //take the first item in the nth dial and prepend it to the n-1 dial result
+    //initial call numdials = 2, basestr = "", min = 0, max = 1
+    //the next calls here numdials = 1, basestr = "0 ", min = 0, max = 1
+    //the next calls here numdials = 1, basestr = "1 ", min = 0, max = 1
+    //...
+    //the next calls here numdials = 1, basestr = "max ", min = 0, max = 1
+    //
+    //initial call numdials = 3, basestr = "", min = 0, max = 1
+    //the next calls here numdials = 2, basestr = "0 ", min = 0, max = 1
+    //the next calls here numdials = 2, basestr = "1 ", min = 0, max = 1
+    //...
+    //the next calls here numdials = 2, basestr = "max ", min = 0, max = 1
+
+    const minnum = minsperdials[minsperdials.length - cdnum - 1];
+    const maxnum = maxsperdials[minsperdials.length - cdnum - 1];
+    //console.log("minnum = " + minnum);
+    //console.log("maxnum = " + maxnum);
+
+    let restrarr = [];
+    for (let n = minnum; n < maxnum + 1; n++)
+    {
+      if (0 < cdnum)
+      {
+        let tempstrarr = this.permutationGeneratorWithMinsAndMaxs(cdnum - 1, minsperdials, maxsperdials,
+          "" + basestr + n + " ");
+        //console.log("tempstrarr = ", tempstrarr);
+
+        for (let x = 0; x < tempstrarr.length; x++) restrarr.push(tempstrarr[x]);
+      }
+      else if (cdnum === 0)
+      {
+        //console.log("n = " + n);
+        restrarr.push("" + basestr + n);
+      }
+      else throw new Error("illegal value found and used for cdnum here!");
+    }//end of n for loop
+    //console.log("restrarr = ", restrarr);
+    
+    return restrarr;
+  }
+  permutationGenerator(numdials, basestr="", minnum = 0, maxnum = 1)
+  {
+    this.letmustbeanumber(numdials, "numdials");
+    this.letmustbeanumber(minnum, "minnum");
+    this.letmustbeanumber(maxnum, "maxnum");
+
+    //console.log("numdials = " + numdials);
+    //console.log("basestr = " + basestr);
+    //console.log("minnum = " + minnum);
+    //console.log("maxnum = " + maxnum);
+    if (this.isLetUndefinedOrNull(basestr))
+    {
+      return this.permutationGenerator(numdials, "", minnum, maxnum);
+    }
+    if (maxnum < minnum) return this.permutationGenerator(numdials, basestr, maxnum, minnum);
+    if (numdials < 1) return null;
+    else
+    {
+      let mins = [];
+      for (let n = 0; n < numdials; n++) mins.push(minnum);
+      let maxs = [];
+      for (let n = 0; n < numdials; n++) maxs.push(maxnum);
+      return this.permutationGeneratorWithMinsAndMaxs(numdials - 1, mins, maxs, "");
+    }
+  }
+
+  testPermutationGenerator()
+  {
+    for (let n = 4; (0 < n || n === 0); n--) console.log(this.permutationGenerator(n, "", 0, 1));
+    console.log(this.permutationGeneratorWithMinsAndMaxs(3, [0, 0, 0, 0], [1, 1, 2, 1], ""));
+  }
+
   getAllIndexesOf(qstr, mystr, offset = 0)
   {
     //console.log("qstr = " + qstr);

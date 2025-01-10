@@ -853,6 +853,670 @@ function App() {
       "mynummatrix": mynumm, "myanswernummatrix": mynumansm};
   }
 
+  function genPartialMatrix(mtopdatobj)
+  {
+    console.log("mtopdatobj = ", mtopdatobj);
+    cc.letMustBeDefinedAndNotNull(mtopdatobj, "mtopdatobj");
+
+    const mydatrws = mtopdatobj.mtrixdatrws;
+    const myelembsarr = mtopdatobj.elembsarr;
+    const myuelems = mtopdatobj.myelems;
+    console.log("mydatrws = ", mydatrws);
+    console.log("myelembsarr = ", myelembsarr);
+    console.log("myuelems = ", myuelems);
+    
+    cc.letMustNotBeEmpty(myelembsarr, "myelembsarr");
+    cc.letMustNotBeEmpty(myuelems, "myuelems");
+    cc.letMustNotBeEmpty(mydatrws, "mydatrws");
+
+    //filter out the elements and anything after the equals stick a - infront of it
+    //if it already has a minus, then remove it
+    //then convert to numbers maybe?
+    //we also need to add a row to it with 1 and then the rest are zeros
+    //this will be our initial matrix
+    //our answer matrix will be a r x 1 col array of all zeros with a 1 after it
+    
+    let myequri = -1;
+    let mynwstrm = mydatrws.map((crwarr, rindx) => {
+      let mynwarr = [];
+      crwarr.forEach((val, cindx) => {
+        //console.log("cindx = ", cindx);
+        //console.log("val = " + val);
+        //console.log("myequri = " + myequri);
+        if (cindx === 0);
+        else
+        {
+          if (val === "=") myequri = cindx;
+          else
+          {
+            if (myequri < 0 || cindx < myequri) mynwarr.push(val);
+            else
+            {
+              if (myequri < cindx)
+              {
+                if (val === "0") mynwarr.push("0");
+                else mynwarr.push((val.charAt(0) === '-') ? val.substring(1) : "-" + val);
+              }
+              else throw new Error("case should have already been handled!");
+            }
+          }
+        }
+      });
+      return mynwarr;
+    });
+    //may not display correct results
+    console.log("INIT mynwstrm = ", mynwstrm);
+
+    let mydims = Matrices.dimensions(mynwstrm);
+    console.log("mydims = ", mydims);
+
+    let issqrm = true;
+    let dimsdiff = 0;
+    let hasmorecols = false;
+    let hasmorerows = false;
+    if (mydims.length < 3)
+    {
+      if (mydims.length === 2)
+      {
+        if (mydims[0] === mydims[1]);
+        else
+        {
+          if (mydims[0] < mydims[1])
+          {
+            dimsdiff = mydims[1] - mydims[0];
+            hasmorecols = true;
+            hasmorerows = false;
+          }
+          else
+          {
+            dimsdiff = mydims[0] - mydims[1];
+            hasmorecols = false;
+            hasmorerows = true;
+          }
+          issqrm = false;
+        }
+      }
+      else
+      {
+        if (mydims[0] === 1);
+        else issqrm = false;
+      }
+    }
+    else throw new Error("invalid dimensions found and used for the matrix!");
+    if (issqrm);
+    else console.warn("this is not a square matrix!");
+    console.log("hasmorecols = " + hasmorecols);
+    console.log("hasmorerows = " + hasmorerows);
+    console.log("dimsdiff = " + dimsdiff);
+
+    //if the number of rows is less than the number of columns
+    //IE less equations than unknowns, we need more equations
+    //in this case add a row with 1 and the rest 0s for each of the diff
+    //then set equal to 1 and the ans will all have 0s other than this one
+    //if it is more than one, do that for the first one, then for the second one 0 1 the rest 0s
+    //and the answ will have all 0s other than these which will have 1s or maybe inc?
+    //
+    //if the number of cols is less than the number of rows
+    //IE less unknowns than equations
+    //we can remove x number of equations as needed and risk the determinant of zero
+    //OR we can add cols as needed to get the determinant to not be zero
+    //however, on these cols, we want the result to be zero or to cancel themselves or to be equal
+    //but enough to get a non-zero determinant
+
+    let myansstrm = mynwstrm.map((val) => ["0"]);
+    if (issqrm);
+    else
+    {
+      //our initial matrix for: AgNO3 + KCl -> KNO3 + AgCl
+      //(we made the first LC 2, note equ with all LCs = 1 is balanced)
+      //RULE: you must ignore all LCs when generating the matrix for balancing
+      //
+      //Ag: [1 0 0 -1]
+      //N:  [1 0 -1 0] -| DROP THESE TWO ROWS
+      //O:  [3 0 -3 0] -|
+      //K:  [0 1 -1 0]
+      //Cl: [0 1 0 -1]
+      //   *[1 0 0 0] THEN SET EQUAL TO DOWN [0, 0, 0, 1] THEN IT WILL YEILD THE CORRECT ANSWERS
+      //
+      //IF I DROP ALL NO3s IN THIS, THEN ADD 1 followed by k zeros and set equal to k zeros and a 1
+      //THEN IT YIELDS THE CORRECT ANSWERS. PROVIDED THE LCS ARE IGNORED.
+      //
+      //AgNO3 + KCl + X -> KNO3 + AgCl + X
+      //
+      //NO CLUE IN THIS CASE
+      //
+      //
+      //H2 + O2 -> H20
+      //[2 0 -2]
+      //[0 2 -1]
+      //
+      //to that add
+      //[1 0 0]
+
+      if (hasmorerows)
+      {
+        //need to drop to get COL - 1
+        //how to figure out which rows to drop
+        //if a molecule is treated as an element, IE not separated out
+        //then we drop the entire molecule THE ROWS THAT MAKE IT UP...
+        //for a molecule to be treated as an element it must remain in tact on the other side
+        //however, for it to be ruled out of the matrix, its parts must not be present anywhere else
+        //
+        //NOTE: ALTHOUGH OFTEN WRITTEN RIGHT NEXT TO EACH OTHER, THEY DO NOT HAVE TO BE.
+        //AgNO3 + KCl -> AgCl + KNO3
+        //NAgO3 + KCl -> AgCl + NKO3
+        //NAgO3 + ClK -> AgCl + NKO3
+        //NAgO3 + ClK -> ClAg + NKO3
+        //THE ABOVE EQUATIONS ARE THE SAME.
+        //HOWEVER:
+        //AgON3 + KCl -> AgCl + KNO3
+        //IS NOT THE SAME AS ABOVE BECAUSE AN ELEMENT AND A BASE GOT SPLIT UP WHICH IS ILLEGAL.
+        //
+        //THE NO3 IS A MOLECULE TECHNICALLY THE O3 IS A MOLECULE TOO
+        //BUT THE NO3 MOLECULE IS NOT BROKEN APART ON THE OTHER SIDE
+        //NOR IS IT ON THE SAME SIDE.
+        //NOR ARE THERE ANY OTHER PARTS OF IT PRESENT IN OTHER REACTANTS OR PRODUCTS.
+        //THEREFORE, THIS DOES NOT EFFECT THE LINEAR ALGEBRA WHATSOEVER AND CAN BE RULED OUT.
+
+        //FOR EACH UNIQUE ELEMENT ON THE EQUATION:
+        //IS THE EQUATION A COMPOSITION OR DECOMPOSITION? IE DOES ONE SIDE ONLY HAVE ONE?
+        //IF THE ANSWER IS YES, THEN NONE CAN BE SEPARATED OUT. ERROR OUT.
+        //IF THE ANSWER IS NO, THEN SOME MIGHT BE ABLE TO BE SEPARATED OUT.
+        //IS PRESENT ON MULTIPLE REACTANTS OR PRODUCTS?
+        //IF THE ANSWER IS NO, THEN THESE MIGHT BE ABLE TO BE SEPARATED OUT.
+        //IF THE ANSWER IS YES, THEN THESE CANNOT BE SEPARATED OUT.
+        //ON THE ONES THAT CAN STILL BE SEPARATED OUT:
+        //IF THE BASES ARE DIFFERENT, THEN THESE CANNOT BE SEPARATED OUT.
+        //OTHERWISE THEN THESE CAN BE SEPARATED OUT.
+        //AgNO3 + KCl -> AgCl + KNO3 (SWAP EQU)
+        //Ag: r1, p1
+        //N: r1, p2
+        //O: r1, p2
+        //K: r2, p2
+        //Cl: r2, p1
+
+        //H2 + O2 -> H2O (COMP/DECOM EQU)
+        //H: r1, p1
+        //O: r2, p1
+
+        //elembasearray has the information we want
+        //need the unique elements list
+        const iscompequ = (mtopdatobj.mxpnum === 1);
+        const isdecompequ = (mtopdatobj.mxrnum === 1);
+        console.log("iscompequ = " + iscompequ);
+        console.log("isdecompequ = " + isdecompequ);
+
+        if (iscompequ || isdecompequ)
+        {
+          //this is a compostion or decomposition equation
+          //less likely to produce this kind of matrix
+          //but if it does, we cannot solve it
+          //cannot remove any rows
+          let myerrmsg = "cannot solve due to zero determinant because cannot remove any row from " +
+            "the matrix and we have too many rows than cols!";
+          //console.error(myerrmsg);
+          throw new Error(myerrmsg);
+        }
+        //else;//do nothing
+        console.log("myelembsarr = ", myelembsarr);
+        console.log("myuelems = ", myuelems);
+
+        //now see if we may be able to drop it
+        let canpossiblydropit = [];
+        let numcandrop = 0;
+        let elembsobjsbyuelms = myuelems.map((val) => {
+          let mymollocs = [];
+          let isrfnd = false;
+          let ispfnd = false;
+          myelembsarr.forEach((elembobjval) => {
+            if (elembobjval.element === val)
+            {
+              mymollocs.push(elembobjval);
+              if (isrfnd);
+              else
+              {
+                if (elembobjval.isreactant) isrfnd = true;
+                //else;//do nothing
+              }
+              if (ispfnd);
+              else
+              {
+                if (elembobjval.isreactant);
+                else ispfnd = true;
+              }
+            }
+            //else;//do nothing
+          });
+          cc.letMustNotBeEmpty(mymollocs, "mymollocs");
+          if (mymollocs.length < 1) throw new Error("the array must have at least 2 items on it!");
+          else
+          {
+            if (isrfnd && ispfnd)
+            {
+              let initcandrop = (mymollocs.length === 2);
+              //can drop if the bases are the same and there are only two of them.
+              if (initcandrop)
+              {
+                initcandrop = (mymollocs[0].base === mymollocs[1].base);
+                if (initcandrop) numcandrop++;
+                //else;//do nothing
+              }
+              //else;//do nothing
+              canpossiblydropit.push(initcandrop);
+              return mymollocs;
+            }
+            else
+            {
+              throw new Error("at least one must be a reactant and at least one must be a product!");
+            }
+          }
+        });
+        console.log("elembsobjsbyuelms = ", elembsobjsbyuelms);
+        console.log("canpossiblydropit = ", canpossiblydropit);
+        console.log("numcandrop = " + numcandrop);
+
+        const numrwstodrop = mydims[0] - (mydims[1] - 1);
+        console.log("numrwstodrop = " + numrwstodrop);
+        console.log("OLD mynwstrm = ", mynwstrm);//will be the original matrix then
+        
+        if (numcandrop < numrwstodrop)
+        {
+          //the most we can drop are less than the number that we must drop
+          //so we cannot drop a certain amount of that
+          //maybe a very big problem here
+          throw new Error("we cannot drop the number of rows that we need to drop!");
+        }
+        //else;//do nothing these cases will be handled by the solver
+
+        //these are partial matrices
+        return {"ispartial": true, "numrowstodrop": numrwstodrop,
+          "rowsthatcanbedroped": canpossiblydropit, "numrowscandrop": numcandrop,
+          "mynumstringmatrix": mynwstrm, "myanswerstringmatrix": myansstrm
+        };
+      }
+      //else;//do nothing
+
+      //gen last row of both matrices
+      mynwstrm.push(mynwstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
+      myansstrm.push(["1"]);
+    }
+    console.log("mynwstrm = ", mynwstrm);
+    console.log("myansstrm = ", myansstrm);
+
+    let mynumm = mynwstrm.map((rwarr) => rwarr.map((val) => Number(val)));
+    let mynumansm = myansstrm.map((rwarr) => rwarr.map((val) => Number(val)));
+    console.log("mynumm = ", mynumm);
+    console.log("mynumansm = ", mynumansm);
+
+    return {"ispartial": false, "numrowstodrop": 0,
+          "rowsthatcanbedroped": mynwstrm.map((val) => false), "numrowscandrop": 0,
+      "mynumstringmatrix": mynwstrm, "myanswerstringmatrix": myansstrm,
+      "mynummatrix": mynumm, "myanswernummatrix": mynumansm};
+  }
+
+  function solverMain(parmatrixobj, useminv=false)
+  {
+    cc.letMustBeBoolean(useminv, "useminv");
+    cc.letMustBeDefinedAndNotNull(parmatrixobj, "parmatrixobj");
+
+    //need to generate the matrix
+    //the problem is the matrix generator will in one case need to be trial and error
+    //we also need access to the top data object to generate the matrix
+    //then we will need to process the results
+    //need some sort of list of combinations we have tried
+    //need some list of combinations to try
+    //we need to remove a certain number of rows
+    //we have a certain number of rows, we only have certain rows we can remove
+    //let us say we have total number of rows totalrows and of this we want to remove k rows
+    //where k is an integer less than totalrows and k is at least zero
+    //say 5 total and remove 2 and can remove all of them:
+    //[[1, 2], [1, 3], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]
+    //this is some sort of permutation because it is without replacement
+    //we have k we want to remove, these would be the number of dials,
+    //we have the dial absolute max = totalrows and the dial absolute min = 1
+    //the dial min and max values will actually be the minimum valid to remove
+    //and the maximum valid to be removed
+    //but our dials for removal have only set valid values
+    //to enforce that if it contains a number that is not valid, then remove it from list
+    //
+    //now for our solver the first one to be solved is the solution
+    //all others are ignored, if any errors, treated as unsolveable and move on to the next one
+    //if none of them solve it, then error out with no solution.
+    
+    //what if we do not need to remove any then perhaps combos will be empty
+    //in that case we want it to run through once, use the matrix, ignore combo matrix gen,
+    //and get what we want, but if it errors out, throw no solution or just throw it...
+
+    const ispartial = parmatrixobj.ispartial;
+    const maxnumrows = parmatrixobj.mynumstringmatrix.length;
+    let combos = null;
+    if (ispartial)
+    {
+      //get the information to call the combo generator here
+      //"numrowstodrop": numrwstodrop, (NUMBER OF DIALS)
+      //"rowsthatcanbedroped": canpossiblydropit, "numrowscandrop": numcandrop
+      //THE OTHERS WILL HELP SET THE MINS AND MAXS ON THE COMBO GENERATOR
+      
+      const numrowstodrop = parmatrixobj.numrowstodrop;//NUM DIALS
+      const numrowscandrop = parmatrixobj.numrowscandrop;
+      if (numrowstodrop === numrowscandrop)
+      {
+        //only add the indexes for the ones that are true
+        combos = [];
+        let mycombo = [];
+        parmatrixobj.canpossiblydropit.forEach((ditval, ditindx) => {
+          if (ditval) mycombo.push(ditindx);//may need to add 1 here if abs min on dials is 1
+          //else;//do nothing
+        });
+        combos.push(mycombo);
+      }
+      else if (numrowscandrop < numrowstodrop)
+      {
+        throw new Error("we cannot drop the number of rows that we need to drop! " +
+          "The partial matrix generator should have caught this!");
+      }
+      else
+      {
+        //need to determine our dial mins and maxs
+        //eventually will call the permutation generator here
+        let dialmin = -1;
+        let dialmax = -1;
+        let fnddialmin = false;
+        for (let n = 0; n < parmatrixobj.rowsthatcanbedroped.length; n++)
+        {
+          if (parmatrixobj.rowsthatcanbedroped[n])
+          {
+            fnddialmin = true;
+            dialmin = n;
+            break;
+          }
+          //else;//do nothing
+        }
+        let fnddialmax = false;
+        for (let n = parmatrixobj.rowsthatcanbedroped.length - 1;
+          (0 < n || n === 0) && n < parmatrixobj.rowsthatcanbedroped.length; n--)
+        {
+          if (parmatrixobj.rowsthatcanbedroped[n])
+          {
+            fnddialmax = true;
+            dialmax = n;
+            break;
+          }
+          //else;//do nothing
+        }
+        console.log("fnddialmin = " + fnddialmin);
+        console.log("fnddialmax = " + fnddialmax);
+        console.log("dialmin = " + dialmin);
+        console.log("dialmax = " + dialmax);
+
+        if (fnddialmin && fnddialmax)
+        {
+          if (dialmax < 0 || dialmin < 0 || maxnumrows - 1 < dialmax || maxnumrows - 1 < dialmin)
+          {
+            throw new Error("invalid dial min or max was found and used here!");
+          }
+          //else;//do nothing
+        }
+        else throw new Error("either the dial min or the dial max did not get set!");
+        let mytempcombos = cc.permutationGenerator(numrowstodrop, "", dialmin, dialmax);
+        console.log("mytempcombos = ", mytempcombos);
+
+        mytempcombos.forEach((val) => {
+          //console.log("val = " + val);
+          
+          let mynumobjs = cc.getAllNumbersFromTheString(val);
+          //console.log("mynumobjs = ", mynumobjs);
+
+          let mycombo = mynumobjs.map((cmbval) => cmbval.num);
+          //console.log("mycombo = ", mycombo);
+
+          //need to check to see if the combo is valid
+          let cmbisvalid = true;
+          let usednums = [];
+          for (let n = 0; n < mycombo.length; n++)
+          {
+            if (mycombo[n] < 0 || maxnumrows - 1 < mycombo[n])
+            {
+              cmbisvalid = false;
+              break;
+            }
+            else
+            {
+              if (parmatrixobj.rowsthatcanbedroped[mycombo[n]])
+              {
+                let addit = true;
+                for (let k = 0; k < usednums.length; k++)
+                {
+                  if (usednums[k] === mycombo[n])
+                  {
+                    addit = false;
+                    break;
+                  }
+                  //else;//do nothing
+                }
+                if (addit) usednums.push(mycombo[n]);
+                else
+                {
+                  cmbisvalid = false;
+                  break;
+                }
+              }
+              else
+              {
+                cmbisvalid = false;
+                break;
+              }
+            }
+          }
+          //console.log("cmbisvalid = " + cmbisvalid);
+
+          if (cmbisvalid)
+          {
+            if (cc.isLetUndefinedOrNull(combos)) combos = [];
+            //else;//do nothing
+            let addit = cc.isLetEmptyNullOrUndefined(combos);
+            for (let k = 0; k < combos.length; k++)
+            {
+              //if these can be arranged to match each other, then same combination
+              //if they both have the same numbers on them, then same combination
+              //if they are the same combination, then do not add it
+              //console.log("combos[" + k + "] = ", combos[k]);
+              //console.log("mycombo = ", mycombo);
+
+              let finaddit = true;
+              for (let c = 0; c < combos[k].length; c++)
+              {
+                //console.log("looking for combos[" + k + "][" + c + "] = " + combos[k][c]);
+
+                let fndit = false;
+                for (let r = 0; r < mycombo.length; r++)
+                {
+                  if (mycombo[r] === combos[k][c])
+                  {
+                    fndit = true;
+                    break;
+                  }
+                  //else;//do nothing
+                }
+                //console.log("fndit = " + fndit);
+
+                if (fndit)
+                {
+                  if (c + 1 < combos[k].length);
+                  else
+                  {
+                    finaddit = false;
+                    addit = false;
+                    break;
+                  }
+                }
+                else
+                {
+                  addit = true;
+                  break;
+                }
+              }//end of c for loop
+              //console.log("finaddit = " + finaddit);
+
+              if (finaddit);
+              else break;
+            }//end of k for loop
+            //console.log("addit = " + addit);
+
+            if (addit) combos.push(mycombo);
+            //else;//do nothing
+          }
+          //else;//do nothing
+        });
+        //console.log("combos = ", combos);
+      }
+    }
+    //else;//do nothing
+    console.log("FINAL combos = ", combos);
+    
+    const hasnocombos = cc.isLetEmptyNullOrUndefined(combos);
+    const nmax = (hasnocombos ? 1 : combos.length);
+    const usestrs = false;//actually dictated by if fractions are stored or numbers directly
+    for (let n = 0; n < nmax; n++)
+    {
+      //get the combination generate the matrix then attempt to solve it
+      let currentcombo = (hasnocombos ? null : combos[n]);
+      console.log("currentcombo = ", currentcombo);
+
+      let myresobj = null;
+      try
+      {
+        let a = null;
+        let b = null;
+        if (ispartial)
+        {
+          if (hasnocombos) break;
+          else
+          {
+            //then gen a and b matrices and proceed below
+            console.log("the original matrix is: ", parmatrixobj.mynumstringmatrix);
+            console.log("the original answer matrix is: ", parmatrixobj.myanswerstringmatrix);
+
+            //once we have these...
+            let mynwnumstrm = parmatrixobj.mynumstringmatrix.filter((myarr, myrwi) => {
+              for (let k = 0; k < currentcombo.length; k++)
+              {
+                if (currentcombo[k] === myrwi) return false;
+                //else;//do nothing
+              }
+              return true;
+            });
+            //gen last row of both matrices
+            mynwnumstrm.push(mynwnumstrm[0].map((val, cindx) => ((cindx === 0) ? "1" : "0")));
+            let mynwansm = parmatrixobj.myanswerstringmatrix.filter((marr, myrwi) => {
+              for (let k = 0; k < currentcombo.length; k++)
+                {
+                  if (currentcombo[k] === myrwi) return false;
+                  //else;//do nothing
+                }
+                return true;
+            });
+            mynwansm.push(["1"]);
+            console.log("FINAL mynwnumstrm = ", mynwnumstrm);
+            console.log("FINAL mynwansm = ", mynwansm);
+
+            let mynumm = mynwnumstrm.map((rwarr) => rwarr.map((val) => Number(val)));
+            let mynumansm = mynwansm.map((rwarr) => rwarr.map((val) => Number(val)));
+            console.log("mynumm = ", mynumm);
+            console.log("mynumansm = ", mynumansm);
+
+            a = (usestrs ? mynwnumstrm : mynumm);
+            b = (usestrs ? mynwansm : mynumansm);
+          }
+        }
+        else
+        {
+          a = (usestrs ? parmatrixobj.mynumstringmatrix : parmatrixobj.mynummatrix);
+          b = (usestrs ? parmatrixobj.myanswerstringmatrix : parmatrixobj.myanswernummatrix);
+        } 
+        myresobj = (useminv ? Matrices.SolveViaMatrixInverse(a, b, !usestrs) :
+          Matrices.CramersRule(a, b, !usestrs));
+        console.log("myresobj = ", myresobj);
+        console.warn("a solution was found!");
+      }
+      catch(err)
+      {
+        if (hasnocombos) console.error("the only matrix used was not the solution!");
+        else
+        {
+          console.error("the combo used was ", currentcombo);
+          console.error("that combo was not the solution because it resulted in an error!");
+        }
+        console.error(err);
+        myresobj = null;
+      }
+      console.log("myresobj = ", myresobj);
+
+      if (cc.isLetEmptyNullOrUndefined(myresobj));
+      else
+      {
+        console.log("mylcs = ", mylcs);
+        //return {"ans": myres, "myintans": myints, "mydenoms": mydenoms, "mynumerators": mynumrs};
+        //return {"ans": myans, "myintans": mynewnums, "mydet": mydet, "mynumerators": mynumerators};
+        //cramers rule has mydet key (whatever it returns a number), minv has mydenoms (array) key
+        //but the only thing we are actually interested in is myintans
+        //as this holds what the lcs need to be
+
+        //take this and set the LCS with the results
+        //myresobj.myintans
+        //mylcs, setMyLCs
+        //the results are in order of the reactants then the products
+        //so if we can determine what order the lcs are currently in, we can set them
+        //if I know how many are in the reactants and how many are in the products,
+        //then I can split the array and set them more or less
+        let numrs = 0;
+        let numps = 0;
+        let rlcobjs = [];
+        let plcobjs = [];
+        mylcs.forEach((lcobj) => {
+          if (lcobj.isreactant)
+          {
+            numrs++;
+            rlcobjs.push(lcobj);
+          }
+          else
+          {
+            numps++;
+            plcobjs.push(lcobj);
+          }
+        });
+        console.log("numrs = " + numrs);
+        console.log("numps = " + numps);
+        console.log("rlcobjs = ", rlcobjs);
+        console.log("plcobjs = ", plcobjs);
+        
+        if (numrs + numps === mylcs.length && mylcs.length === myresobj.myintans.length);
+        else throw new Error("illegal number of lcs or answers found!");
+
+        //the lcs can now be mapped and set
+        let mynwlcs = rlcobjs.map((robj) => {
+          let mynwrobj = {...robj};
+          mynwrobj.lcval = myresobj.myintans[robj.num - 1];
+          return mynwrobj;
+        });
+        plcobjs.forEach((pobj) => {
+          let mynwpobj = {...pobj};
+          mynwpobj.lcval = myresobj.myintans[numrs + pobj.num - 1];
+          mynwlcs.push(mynwpobj);
+        });
+        console.log("mynwlcs = ", mynwlcs);
+
+        setMyLCs(mynwlcs);
+        if (areallequsbalanced);
+        else setAllEqusBalanced(true);
+        if (balerrfnd) setBalErrorFound(false);
+        //else;//do nothing
+        return mynwlcs;
+      }
+    }//end of n for loop
+    throw new Error("no solution found!");
+  }
+
   function solveTheSystem(matrixobj, useminv=false)
   {
     cc.letMustBeBoolean(useminv, "useminv");
@@ -916,6 +1580,11 @@ function App() {
     console.log("mynwlcs = ", mynwlcs);
 
     setMyLCs(mynwlcs);
+    if (areallequsbalanced);
+    else setAllEqusBalanced(true);
+    if (balerrfnd) setBalErrorFound(false);
+    //else;//do nothing
+    return mynwlcs;
   }
 
   function getElementAndBaseStartAndEndIndexes(hnames)
@@ -1363,7 +2032,7 @@ function App() {
       <thead style={{border: "1px solid black"}}>{myhrw}</thead>
       <tbody style={{border: "1px solid black"}}>{mybdyrws}</tbody>
     </table>
-    <p>the equation is <b>{(allbal ? "balanced!" : "not balanced!")}</b></p>
+    <p>The equation is <b>{(allbal ? "balanced!" : "not balanced!")}</b></p>
     {noonezeroerrorfnd ? (<p style={{color: "red"}}><b>{"Although having no elements on both the " +
       "products and the reactants is technically valid, having an amount on one side, but nothing " +
       "on the other is not valid!"}
@@ -1900,12 +2569,13 @@ function App() {
         }}>
           {lockedbases ? "un": ""}lock bases!</button>
         {((areallequsbalanced || !lockedbases || balerrfnd) ? null :
-          (<button onClick={(event) => solveTheSystem(
-            genMatrixAndAnsMatrix(mytopdataobj), useminv)}>Solve It!</button>))}
+          (<button onClick={(event) => solverMain(genPartialMatrix(mytopdataobj), useminv)}>
+            Solve It!</button>))}
       </div>
+      <br />
       <div id="equalltextinput">
         <textarea id="myequinput" name="myequinput" defaultValue={genEquTextFrom(myelembasearr, mylcs)}
-          onBlur={(event) => {
+          style={{fontSize: "20px", minWidth: "300px"}} onBlur={(event) => {
             let mynwequtxt = event.target.value;
             setMyInitialStateFromEqu(mynwequtxt);
           }} />
