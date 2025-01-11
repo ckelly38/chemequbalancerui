@@ -28,6 +28,7 @@ function EquBalancer({equnum=1}) {
   let [balerrfnd, setBalErrorFound] = useState(false);
   let [mytextequ, setMyTextEqu] = useState("");
   const cc = new commonclass();
+  cc.letmustbeanumber(equnum, "equnum");
   
   let runmtests = false;
   if (runmtests)
@@ -151,8 +152,20 @@ function EquBalancer({equnum=1}) {
   //null will be returned if the item was not found
   function getMyItem(midstr)
   {
+    //console.log("myelembasearr = ", myelembasearr);
+    //console.log("midstr = ", midstr);
+    
     if (cc.isLetEmptyNullOrUndefined(midstr)) return null;
-    //else;//do nothing
+    else
+    {
+      const myequnumstr = "equ" + equnum;
+      let myindx = midstr.indexOf(myequnumstr);
+      if (cc.stringIndexIsInvalid(myindx, midstr, 0));
+      else
+      {
+        return getMyItem(midstr.substring(0, myindx) + midstr.substring(myindx + myequnumstr.length));
+      }
+    }
     for (let n = 0; n < myelembasearr.length; n++)
     {
       if (myelembasearr[n].id === midstr) return myelembasearr[n];
@@ -291,7 +304,7 @@ function EquBalancer({equnum=1}) {
       let myobjsfcnum = myrsorpsarr.filter((mobj) => (mobj.num === n));
       let kynm = (usereactants ? "r" : "p") + n;
       let myelemsindiv = myobjsfcnum.map((mobj, mindx) => {
-        let mfulkystr = "" + kynm + "_" + mindx;
+        let mfulkystr = "equ" + equnum + kynm + "_" + mindx;
         return (<ElemBaseComp midstr={mfulkystr} key={mfulkystr} getitem={getMyItem}
           showbtns={(mindx + 1 === myobjsfcnum.length)} canremthis={mobj.canrem} setitem={setMyItem}
           addtothis={addNewReactantOrProductToOne} remfromthis={removeFromThisOne}
@@ -302,8 +315,9 @@ function EquBalancer({equnum=1}) {
 
       cc.letMustBeDefinedAndNotNull(mylcitem, "mylcitem");
 
-      myreselems.push(<div key={kynm} style={{display: "inline-block"}}>
-        <input id={kynm + "coeff"} key={kynm + "coeff"} name={kynm + "coeff"} type="number" min="1"
+      myreselems.push(<div key={"equ" + equnum + kynm} style={{display: "inline-block"}}>
+        <input id={"equ" + equnum + kynm + "coeff"} key={"equ" + equnum + kynm + "coeff"}
+          name={"equ" + equnum + kynm + "coeff"} type="number" min="1"
           value={mylcitem.lcval} style={{width: "45px", resize: true}}
           onChange={(event) => {
             let nitem = {...mylcitem};
@@ -312,8 +326,8 @@ function EquBalancer({equnum=1}) {
           }} />{myelemsindiv}</div>);
       if (n + 1 < mxnum + 1)
       {
-        myreselems.push(<span key={kynm + "plus"} style={{display: "inline-block", fontSize: "40px"}}>
-          {" + "}</span>);
+        myreselems.push(<span key={"equ" + equnum + kynm + "plus"}
+          style={{display: "inline-block", fontSize: "40px"}}>{" + "}</span>);
       }
       //else;//do nothing
     }//end of n for loop
@@ -327,7 +341,7 @@ function EquBalancer({equnum=1}) {
     cc.letMustBeBoolean(usereactants, "usereactants");
 
     const mynm = (usereactants ? "reactant" : "product");
-    return (<div id={mynm + "s"} style={{display: "inline-block"}}>
+    return (<div id={"equ" + equnum + mynm + "s"} style={{display: "inline-block"}}>
       {getMyReactantsOrProductsFromArray(myarr, usereactants)}</div>);
   }
 
@@ -469,12 +483,13 @@ function EquBalancer({equnum=1}) {
         const colnmtype = ((hnm === "->") ? "equals" : hnm);
         //console.log("colnmtype = " + colnmtype);
 
-        return (<td key={elem + mytpstr + colnmtype} style={{border: "1px solid black"}}>
-          {datastr}</td>);
+        return (<td key={"equ" + equnum + elem + mytpstr + colnmtype}
+          style={{border: "1px solid black"}}>{datastr}</td>);
       });
       //console.log("mycolsonrw = ", mycolsonrw);
     
-      return (<tr key={elem + mytpstr + "row"} style={{border: "1px solid black"}}>{mycolsonrw}</tr>);
+      return (<tr key={"equ" + equnum + elem + mytpstr + "row"} style={{border: "1px solid black"}}>
+        {mycolsonrw}</tr>);
     });
     console.log("mybdyrws = ", mybdyrws);
     console.log("mybdyrws.length = " + mybdyrws.length);
@@ -1917,9 +1932,9 @@ function EquBalancer({equnum=1}) {
     //console.log("mytopdataobj = ", mytopdataobj);
     cc.letMustBeDefinedAndNotNull(mytopdataobj, "mytopdataobj");
 
-    const myhrw = (<tr key="equtablehdrrw" style={{border: "1px solid black"}}>{
+    const myhrw = (<tr key={"equ" + equnum + "equtablehdrrw"} style={{border: "1px solid black"}}>{
       mytopdataobj.hnames.map((nm) =>
-        <th key={nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
+        <th key={"equ" + equnum + nm} style={{border: "1px solid black"}}>{nm}</th>)}</tr>);
 
     //generate the data rows here...
     const usemtrixrows = false;
@@ -1946,9 +1961,10 @@ function EquBalancer({equnum=1}) {
 
     //the new headers we want are elements, total on left, total on right, is blanced
     const nwhdrs = ["elements", "total on left", "total on right", "is balanced"];
-    const myhrw = (<tr key="baltablehdrrw" style={{border: "1px solid black"}}>{nwhdrs.map((nm) => {
-      let kynm = ((nm === "elements") ? "" + nm + "_baltble" : nm);
-      return (<th key={kynm} style={{border: "1px solid black"}}>{nm}</th>);
+    const myhrw = (<tr key={"equ" + equnum + "baltablehdrrw"} style={{border: "1px solid black"}}>
+      {nwhdrs.map((nm) => {
+        let kynm = ((nm === "elements") ? "" + nm + "_baltble" : nm);
+        return (<th key={"equ" + equnum + kynm} style={{border: "1px solid black"}}>{nm}</th>);
     })}</tr>);
 
     let allbal = true;
@@ -2005,11 +2021,14 @@ function EquBalancer({equnum=1}) {
           (mytonright < 1 && 0 < mytonleft));
         //console.log("noonezeroerrorfnd = " + noonezeroerrorfnd);
   
-        return(<tr key={rarr[0] + "bal_tblerw"} style={{border: "1px solid black"}}>
-          <td key={rarr[0] + "bal_element"} style={{border: "1px solid black"}}>{rarr[0]}</td>
-          <td key={rarr[0] + "bal_onleft"} style={{border: "1px solid black"}}>{mytonleft}</td>
-          <td key={rarr[0] + "bal_onright"} style={{border: "1px solid black"}}>{mytonright}</td>
-          <td key={rarr[0] + "bal_elisbalanced"} style={{border: "1px solid black"}}>
+        return(<tr key={"equ" + equnum + rarr[0] + "bal_tblerw"} style={{border: "1px solid black"}}>
+          <td key={"equ" + equnum + rarr[0] + "bal_element"} style={{border: "1px solid black"}}>
+            {rarr[0]}</td>
+          <td key={"equ" + equnum + rarr[0] + "bal_onleft"} style={{border: "1px solid black"}}>
+            {mytonleft}</td>
+          <td key={"equ" + equnum + rarr[0] + "bal_onright"} style={{border: "1px solid black"}}>
+            {mytonright}</td>
+          <td key={"equ" + equnum + rarr[0] + "bal_elisbalanced"} style={{border: "1px solid black"}}>
             {"" + isbalanced}</td>
         </tr>);
       });
@@ -2063,17 +2082,10 @@ function EquBalancer({equnum=1}) {
       });
       //console.log("myindxsonlyswithspc = ", myindxsonlyswithspc);
 
-      finindxs = myindxsnospcs.map((pval, mpi) => {
-        if (myindxsonlyswithspc[mpi]) return pval - 1;
-        else return pval;
-      });
+      finindxs = myindxsnospcs.map((pval, mpi) => pval - (myindxsonlyswithspc[mpi] ? 1 : 0));
       finindxslens = myindxsnospcs.map((pval, mpi) => {
         if (myindxsonlyswithspc[mpi]) return myqrynospcs.length + 2;
-        else
-        {
-          if (pval < 0 || mystr.length - 1 < pval) return 0;
-          else return myqrynospcs.length;
-        }
+        else return ((pval < 0 || mystr.length - 1 < pval) ? 0 : myqrynospcs.length);
       });
     }
     console.log("myindxsonlyswithspc = ", myindxsonlyswithspc);
@@ -2555,8 +2567,9 @@ function EquBalancer({equnum=1}) {
   return (<div>
       <h1>Equation #{equnum}</h1>
       <div>{genControlButtons(myelembasearr, true)}
-        <span key={"equarrowa"} style={{display: "inline-block", fontSize: "20px"}}>{" -> "}</span>
-          {genControlButtons(myelembasearr, false)}
+        <span key={"equ" + equnum + "equarrowa"} style={{display: "inline-block", fontSize: "20px"}}>
+          {" -> "}</span>
+        {genControlButtons(myelembasearr, false)}
         <button style={{marginLeft: "10px"}} onClick={(event) => {
           if (lockedbases);
           else setMyTextEqu(genEquTextFrom(myelembasearr, mylcs));
@@ -2568,14 +2581,15 @@ function EquBalancer({equnum=1}) {
             Solve It!</button>))}
       </div>
       <br />
-      <div id="equalltextinput">
-        <textarea id="myequinput" name="myequinput" defaultValue={genEquTextFrom(myelembasearr, mylcs)}
+      <div id={"equ" + equnum + "equalltextinput"}>
+        <textarea id={"equ" + equnum + "myequinput"} name={"equ" + equnum + "myequinput"}
+          defaultValue={genEquTextFrom(myelembasearr, mylcs)}
           style={{fontSize: "20px", minWidth: "300px", minHeight: "25px"}} onBlur={(event) => {
             let mynwequtxt = event.target.value;
             setMyInitialStateFromEqu(mynwequtxt);
           }} />
       </div>
-      <div id="equ" style={{display: "inline-block"}}>
+      <div id={"equ" + equnum + "equ"} style={{display: "inline-block"}}>
         {genReactantsOrProductsDivs(myelembasearr, true)}
           <span key={"equarrowb"} style={{display: "inline-block", fontSize: "40px"}}>{" -> "}</span>
         {genReactantsOrProductsDivs(myelembasearr, false)}
