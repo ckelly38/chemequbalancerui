@@ -119,7 +119,7 @@ class Matrices
             //max r is 3; max c is 2; 
             //for the square m[r][c] = m[c][r]
             let dims = this.dimensions(m);
-            console.log("dims = ", dims);
+            //console.log("dims = ", dims);
 
             let nwm = null;
             let finuseobjinit = (useobjsforlessthanthree || !(dims.length < 3));
@@ -721,10 +721,10 @@ class Matrices
         
         let dimsa = this.dimensions(a);
         let dimsb = this.dimensions(b);
-        console.log("a = ", a);
-        console.log("b = ", b);
-        console.log("dimsa = ", dimsa);
-        console.log("dimsb = ", dimsb);
+        //console.log("a = ", a);
+        //console.log("b = ", b);
+        //console.log("dimsa = ", dimsa);
+        //console.log("dimsb = ", dimsb);
 
         cc.letMustNotBeEmpty(dimsa, "dimsa");
         cc.letMustNotBeEmpty(dimsb, "dimsb");
@@ -759,18 +759,18 @@ class Matrices
                 numrsb = dimsb[0];
                 numcsb = dimsb[1];
             }
-            console.log("a is a matrix with " + numrsa + " rows and " + numcsa + " cols!");
-            console.log("b is a matrix with " + numrsb + " rows and " + numcsb + " cols!");
+            //console.log("a is a matrix with " + numrsa + " rows and " + numcsa + " cols!");
+            //console.log("b is a matrix with " + numrsb + " rows and " + numcsb + " cols!");
 
             if (numcsa === numrsb)
             {
-                console.log("initially can multiply!");
+                //console.log("initially can multiply!");
             }
             else
             {
                 //cannot multiply
-                console.log("initially cannot multiply! Might be able to multiply a " +
-                    "transpose of a 1D array otherwise cannot multiply!");
+                //console.log("initially cannot multiply! Might be able to multiply a " +
+                //    "transpose of a 1D array otherwise cannot multiply!");
                 if (dimsa.length === 1)
                 {
                     if (numrsa === numrsb)
@@ -812,11 +812,12 @@ class Matrices
                 throw new Error("cannot multiply these matrices or not by a legal transpose of " +
                     "a 1D array!");
             }
-            console.log("can multiply these matrices!");
+            //console.log("can multiply these matrices!");
 
             let resnumrs = numrsa;
             let resnumcs = numcsb;
-            console.log("resmatrix is a matrix with " + resnumrs + " rows and " + resnumcs + " cols!");
+            //console.log("resmatrix is a matrix with " + resnumrs + " rows and " + resnumcs + 
+            //  " cols!");
             
             //initialize the new matrix
             let resm = [];
@@ -844,32 +845,32 @@ class Matrices
                         {
                             for (let rb = 0; rb < b.length; rb++)
                             {
-                                console.log("a[" + ra + "][" + rb + "] = " + a[ra][rb]);
-                                console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
+                                //console.log("a[" + ra + "][" + rb + "] = " + a[ra][rb]);
+                                //console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
                                 
                                 let myresopval = this.doSomeOpOnValByNum(a[ra][rb], b[rb][cb],
                                     1, usenums, usenums);
-                                console.log("mulitplied = " + myresopval);
-                                console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                                //console.log("mulitplied = " + myresopval);
+                                //console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                                 
                                 if (usenums) resm[ra][cb] += myresopval;
                                 else resm[ra][cb] = this.addTwoFractions(resm[ra][cb], myresopval);
-                                console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                                //console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             }//end of rb = ca
                         }
                         else
                         {
                             //dimsb.length is 1
-                            console.log("a[" + ra + "][0] = " + a[ra][0]);
-                            console.log("b[" + cb + "] = " + b[cb]);
+                            //console.log("a[" + ra + "][0] = " + a[ra][0]);
+                            //console.log("b[" + cb + "] = " + b[cb]);
                             let myresopval = this.doSomeOpOnValByNum(a[ra][0], b[cb],
                                 1, usenums, usenums);
-                            console.log("mulitplied = " + myresopval);
-                            console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                            //console.log("mulitplied = " + myresopval);
+                            //console.log("OLD resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                             
                             if (usenums) resm[ra][cb] += myresopval;
                             else resm[ra][cb] = this.addTwoFractions(resm[ra][cb], myresopval);
-                            console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
+                            //console.log("NEW resm[" + ra + "][" + cb + "] = " + resm[ra][cb]);
                         }
                     }//end of cb
                 }//end of ra
@@ -881,16 +882,16 @@ class Matrices
                 {
                     for (let rb = 0; rb < b.length; rb++)
                     {
-                        console.log("a[" + rb + "] = " + a[rb]);
-                        console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
+                        //console.log("a[" + rb + "] = " + a[rb]);
+                        //console.log("b[" + rb + "][" + cb + "] = " + b[rb][cb]);
                         let myresopval = this.doSomeOpOnValByNum(a[rb], b[rb][cb],
                             1, usenums, usenums);
-                        console.log("mulitplied = " + myresopval);
-                        console.log("OLD resm[" + cb + "] = " + resm[cb]);
+                        //console.log("mulitplied = " + myresopval);
+                        //console.log("OLD resm[" + cb + "] = " + resm[cb]);
                         
                         if (usenums) resm[cb] += myresopval;
                         else resm[cb] = this.addTwoFractions(resm[cb], myresopval);
-                        console.log("NEW resm[" + cb + "] = " + resm[cb]);
+                        //console.log("NEW resm[" + cb + "] = " + resm[cb]);
                     }//end of rb = ca
                 }//end of cb
             }
@@ -1271,14 +1272,14 @@ class Matrices
         let mymxitemsonarrzerosrw = this.maxItemsFoundOnMyArray(rwarr, usenums);
         let mxnumfndonrws = mymxitemsonarrzerosrw.maxnumfound;
         let mxrwi = mymxitemsonarrzerosrw.maxroworcoli;
-        console.log(basenmforarrs + "rws = " + mxnumfndonrws);
-        console.log("mxrwi = " + mxrwi);
+        //console.log(basenmforarrs + "rws = " + mxnumfndonrws);
+        //console.log("mxrwi = " + mxrwi);
 
         let mymxitemsonarrzeroscl = this.maxItemsFoundOnMyArray(clarr, usenums);
         let mxnumfndoncls = mymxitemsonarrzeroscl.maxnumfound;
         let mxcli = mymxitemsonarrzeroscl.maxroworcoli;
-        console.log(basenmforarrs + "cls = " + mxnumfndoncls);
-        console.log("mxcli = " + mxcli);
+        //console.log(basenmforarrs + "cls = " + mxnumfndoncls);
+        //console.log("mxcli = " + mxcli);
 
         if (mxnumfndonrws < mxnumfndoncls)
         {
@@ -1301,8 +1302,8 @@ class Matrices
         else
         {
             let dims = this.dimensions(m);
-            console.log("m = ", m);
-            console.log("dims = ", dims);
+            //console.log("m = ", m);
+            //console.log("dims = ", dims);
 
             if (dims.length < 3)
             {
@@ -1335,8 +1336,8 @@ class Matrices
 
                 let mycols = this.getRowsOrCols(m, false);
                 let myrows = this.getRowsOrCols(m, true);
-                console.log("mycols = ", mycols);
-                console.log("myrows = ", myrows);
+                //console.log("mycols = ", mycols);
+                //console.log("myrows = ", myrows);
 
                 //take some row r and go accross all of the columns comparing
                 //the values against other rows
@@ -1346,12 +1347,12 @@ class Matrices
                     let mytpstr = ((n === 0) ? "mycols" : "myrows");
                     for (let rorc = 0; rorc < myarr.length; rorc++)
                     {
-                        console.log(mytpstr + "[" + rorc + "] = ", myarr[rorc]);
+                        //console.log(mytpstr + "[" + rorc + "] = ", myarr[rorc]);
                         if (this.doesRowOrColHaveAllZeros(myarr[rorc])) return (usenums ? 0 : "0");
                         //else;//do nothing
                         for (let k = rorc + 1; k < myarr.length; k++)
                         {
-                            console.log(mytpstr + "[" + k + "] = ", myarr[k]);
+                            //console.log(mytpstr + "[" + k + "] = ", myarr[k]);
                             if (this.areTwoRowsOrColsTheSame(rorc, k, myarr))
                             {
                                 return (usenums ? 0 : "0");
@@ -1369,7 +1370,7 @@ class Matrices
                 //can one row or col be multiplied by a constant to get the other
                 //if so determinant is zero.
                 //handled above
-                console.log("THE DETERMINANT IS NOT ZERO!");
+                //console.log("THE DETERMINANT IS NOT ZERO!");
 
                 //if it is an identity or a diagnal matrix
                 //then the determinant is the main diagnal multiplied by each other
@@ -1382,8 +1383,8 @@ class Matrices
                         if (usenums) myval *= m[r][r];
                         else myval = this.multiplyTwoFractions(myval, m[r][r]);
                     }
-                    console.log("THIS IS A DIAGNAL MATRIX SO MULTIPLY MAIN DIAGNAL!");
-                    console.log("myval = " + myval);
+                    //console.log("THIS IS A DIAGNAL MATRIX SO MULTIPLY MAIN DIAGNAL!");
+                    //console.log("myval = " + myval);
                     
                     return myval;
                 }
@@ -1418,17 +1419,17 @@ class Matrices
                     this.getNumberOfANumOnArr(rindx, 0, mycols, usenums));
                 let numonesoncls = mycols.map((arr, rindx) =>
                     this.getNumberOfANumOnArr(rindx, 1, mycols, usenums));
-                console.log("numzerosonrws = ", numzerosonrws);
-                console.log("numonesonrws = ", numonesonrws);
-                console.log("numzerosoncls = ", numzerosoncls);
-                console.log("numonesoncls = ", numonesoncls);
+                //console.log("numzerosonrws = ", numzerosonrws);
+                //console.log("numonesonrws = ", numonesonrws);
+                //console.log("numzerosoncls = ", numzerosoncls);
+                //console.log("numonesoncls = ", numonesoncls);
 
                 let numslessthantenonrws = myrows.map((arr, rindx) =>
                     this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, myrows, "<", usenums));
                 let numslessthantenoncls = myrows.map((arr, rindx) =>
                     this.getNumberOfANumOnArrWithDesiredOPStr(rindx, 10, mycols, "<", usenums));
-                console.log("numslessthantenonrws = ", numslessthantenonrws);
-                console.log("numslessthantenoncls = ", numslessthantenoncls);
+                //console.log("numslessthantenonrws = ", numslessthantenonrws);
+                //console.log("numslessthantenoncls = ", numslessthantenoncls);
 
                 //if a row or column has 0s use it, next use 1, then the max under 10
                 //then arbitrarily use the first row
@@ -1453,9 +1454,9 @@ class Matrices
                         //else;//do nothing
                     }
                 }
-                console.log("zerofnd = " + zerofnd);
-                console.log("onefnd = " + onefnd);
-                console.log("numundrtenfnd = " + numundrtenfnd);
+                //console.log("zerofnd = " + zerofnd);
+                //console.log("onefnd = " + onefnd);
+                //console.log("numundrtenfnd = " + numundrtenfnd);
 
                 if (zerofnd)
                 {
@@ -1498,9 +1499,9 @@ class Matrices
                         }
                     }
                 }
-                console.log("userow = " + userow);
-                console.log("myrw = " + myrw);
-                console.log("mycl = " + mycl);
+                //console.log("userow = " + userow);
+                //console.log("myrw = " + myrw);
+                //console.log("mycl = " + mycl);
                 //console.log("m = ", m);
                 //console.log("this = ", this);
 
@@ -1525,8 +1526,8 @@ class Matrices
                                 this.determinant(this.getMinor(m, myrw, c), usenums));
                         if (usenums) mydval += cfval;
                         else mydval = this.addTwoFractions(mydval, cfval); 
-                        console.log("cfval = " + cfval);
-                        console.log("NEW mydval = " + mydval);
+                        //console.log("cfval = " + cfval);
+                        //console.log("NEW mydval = " + mydval);
                     }
                 }
                 else
@@ -1544,11 +1545,11 @@ class Matrices
                                 this.determinant(this.getMinor(m, r, mycl), usenums));
                         if (usenums) mydval += cfval;
                         else mydval = this.addTwoFractions(mydval, cfval); 
-                        console.log("cfval = " + cfval);
-                        console.log("NEW mydval = " + mydval);
+                        //console.log("cfval = " + cfval);
+                        //console.log("NEW mydval = " + mydval);
                     }
                 }
-                console.log("FINAL mydval = " + mydval);
+                //console.log("FINAL mydval = " + mydval);
 
                 return mydval;
             }
@@ -1646,7 +1647,7 @@ class Matrices
             
             //if this is the same as the identity return it
             let myidentitym = this.identity(mydims);
-            console.log("myidentitym = ", myidentitym);
+            //console.log("myidentitym = ", myidentitym);
 
             let isidm = true;
             for (let r = 0; r < m.length; r++)
@@ -1666,7 +1667,7 @@ class Matrices
                 if (isidm);
                 else break;
             }
-            console.log("isidm = " + isidm);
+            //console.log("isidm = " + isidm);
 
             if (isidm) return m;
             //else;//do nothing proceed below
